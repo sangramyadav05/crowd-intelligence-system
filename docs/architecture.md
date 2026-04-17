@@ -1,29 +1,51 @@
-# Architecture Overview
+# Crowd Intelligence System Architecture
 
-## High-Level System Overview
+## System Architecture Diagram
 
-The Crowd Intelligence System is planned as a modular web-based platform for monitoring crowd conditions, surfacing operational alerts, and supporting short-term crowd planning decisions.
+```text
++-----------------------+
+|      Frontend         |
+| React Dashboard UI    |
++-----------+-----------+
+            |
+            v
++-----------------------+
+|       Backend         |
+| Express API Layer     |
+| Socket.IO Ready       |
++-----------+-----------+
+            |
+            v
++-----------------------+
+|   Data / Services     |
+| Simulation / Storage  |
+| Prediction Modules    |
++-----------------------+
+```
 
-At a high level, the system will collect or simulate crowd-related data, process it through backend services, persist relevant information, and deliver real-time updates to a frontend dashboard used by operators.
+## High-Level Overview
 
-## Frontend and Backend Separation
+Crowd Intelligence System is designed as one integrated product with a dedicated UI layer and API layer. The frontend handles operator-facing dashboards and visual states, while the backend manages data generation, business endpoints, and future real-time communication channels.
 
-The project is structured with a clear separation between the client and server:
-
-- `frontend/` will contain the React-based user interface for dashboards, maps, alerts, and operator views.
-- `backend/` will contain the Node.js and Express services responsible for APIs, processing, data coordination, and real-time communication.
-
-This separation keeps the architecture maintainable, scalable, and easier to develop in parallel during the hackathon.
+This structure keeps the codebase modular without making it feel like two disconnected projects.
 
 ## Data Flow
 
-User -> Frontend -> Backend -> Database -> Real-time updates
+Frontend -> Backend -> Data -> Frontend
 
-The frontend will send requests to the backend for data retrieval and system actions. The backend will process incoming data, interact with the database, and push relevant updates back to connected clients through real-time channels.
+- The frontend requests crowd data from backend endpoints.
+- The backend simulates or processes crowd data and returns structured responses.
+- The frontend renders the data in the dashboard and will later react to live updates.
 
-## Planned Future Modules
+## Current Integration
 
-- Data simulation
+- Frontend API target: `http://localhost:5000/api/crowd`
+- Backend API route: `GET /api/crowd`
+- Unified root scripts coordinate both services from a single repository root
+
+## Planned Modules
+
+- Simulation engine
 - Density estimation
 - Alert system
 - Prediction engine
