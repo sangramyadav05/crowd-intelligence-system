@@ -26,10 +26,19 @@ function App() {
   }, [initializeAuth])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <AnimatePresence mode="wait">
-        <Routes>
+    <div className="min-h-screen bg-slate-950 text-slate-50 relative overflow-x-hidden font-sans">
+      {/* Dynamic Ambient Background Elements */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-accent-purple/10 blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute top-[20%] -right-[10%] w-[40%] h-[60%] rounded-full bg-accent-cyan/10 blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute -bottom-[20%] left-[20%] w-[60%] h-[50%] rounded-full bg-primary-900/20 blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+      </div>
+      
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">
+          <AnimatePresence mode="wait">
+            <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/access" element={<AccessPortal />} />
@@ -69,7 +78,9 @@ function App() {
             </StaffRoute>
           } />
         </Routes>
-      </AnimatePresence>
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   )
 }

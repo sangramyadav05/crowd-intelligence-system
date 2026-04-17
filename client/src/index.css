@@ -2,27 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  font-family: 'Inter', sans-serif;
+@layer base {
+  html, body {
+    @apply bg-slate-950 text-slate-100 font-sans;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #0f172a; /* slate-900 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #334155; /* slate-700 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #475569; /* slate-600 */
 }
 
 /* Leaflet map styles */

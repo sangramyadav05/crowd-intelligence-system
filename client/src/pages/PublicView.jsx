@@ -54,9 +54,9 @@ export default function PublicView() {
   }
 
   const getStatusColor = (occupancy) => {
-    if (occupancy > 90) return 'bg-red-500'
-    if (occupancy > 70) return 'bg-amber-500'
-    return 'bg-green-500'
+    if (occupancy > 90) return 'bg-red-500/10 border-red-500/200'
+    if (occupancy > 70) return 'bg-orange-500/10 border-orange-500/200/10 border-orange-500/200'
+    return 'bg-emerald-500/10 border-emerald-500/200'
   }
 
   const getStatusText = (occupancy) => {
@@ -237,7 +237,7 @@ export default function PublicView() {
   }
 
   return (
-    <div className="pt-16 min-h-screen bg-gradient-to-br from-gray-50 to-primary-50">
+    <div className="pt-16 min-h-screen bg-slate-950">
       <AnimatePresence mode="wait">
         {!eventData ? (
           <motion.div
@@ -249,19 +249,19 @@ export default function PublicView() {
           >
             <div className="w-full max-w-md">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Users className="w-10 h-10 text-white" />
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900">Check Crowd Status</h1>
-                <p className="text-gray-600 mt-2">Enter your event access code to view live crowd information</p>
+                <h1 className="text-3xl font-bold text-white font-display">Check Crowd Status</h1>
+                <p className="text-slate-400 mt-2">Enter your event access code to view live crowd information</p>
               </div>
 
-              <form onSubmit={handleLookup} className="bg-white rounded-2xl shadow-xl p-8">
+              <form onSubmit={handleLookup} className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-xl p-8">
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-center space-x-2"
+                    className="mb-6 p-4 bg-red-500/10 border-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm flex items-center space-x-2"
                   >
                     <AlertTriangle className="w-5 h-5" />
                     <span>{error}</span>
@@ -269,12 +269,12 @@ export default function PublicView() {
                 )}
 
                 <div className="relative mb-6">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="text"
                     value={accessCode}
                     onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                    className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-0 outline-none text-lg tracking-wider font-mono uppercase"
+                    className="w-full pl-12 pr-4 py-4 border-2 border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 rounded-xl focus:border-accent-cyan focus:ring-0 outline-none text-lg tracking-wider font-mono uppercase"
                     placeholder="ENTER CODE"
                     maxLength={6}
                     required
@@ -284,7 +284,7 @@ export default function PublicView() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="w-full py-4 bg-gradient-to-r from-accent-cyan to-accent-purple border-none shadow-[0_0_10px_rgba(6,182,212,0.3)] text-white rounded-xl font-semibold hover:scale-[1.02] transition-transform disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {isLoading ? (
                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -297,7 +297,7 @@ export default function PublicView() {
                 </button>
               </form>
 
-              <div className="mt-8 text-center text-sm text-gray-500">
+              <div className="mt-8 text-center text-sm text-slate-400">
                 <p>Need an access code? Contact the event organizer</p>
               </div>
             </div>
@@ -318,17 +318,17 @@ export default function PublicView() {
                   setVenuePlan(null)
                   setSelectedHeatmapZoneId('')
                 }}
-                className="mb-4 text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+                className="mb-4 text-slate-400 hover:text-white flex items-center space-x-1"
               >
                 <ArrowRight className="w-4 h-4 rotate-180" />
                 <span>Check another event</span>
               </button>
 
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{eventData.event?.name}</h1>
-                    <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
+                    <h1 className="text-2xl font-bold text-white font-display">{eventData.event?.name}</h1>
+                    <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-400">
                       <span className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
                         <span>{eventData.event?.location?.address}</span>
@@ -339,54 +339,54 @@ export default function PublicView() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-4 sm:mt-0 px-4 py-2 bg-primary-100 text-primary-800 rounded-lg font-medium">
+                  <div className="mt-4 sm:mt-0 px-4 py-2 bg-accent-cyan/20 border border-accent-cyan/30 text-accent-cyan rounded-lg font-medium">
                     Code: {eventData.event?.accessCode}
                   </div>
                 </div>
                 {eventData.message && (
-                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  <div className="mt-4 rounded-xl border border-orange-500/30 bg-orange-500/10 border-orange-500/200/10 border-orange-500/20 px-4 py-3 text-sm text-orange-400">
                     {eventData.message}
                   </div>
                 )}
               </div>
 
               {/* Overall Status */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Overall Status</h2>
+              <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Overall Status</h2>
                 {currentZone && (
-                  <div className="mb-3 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-700 text-sm">
+                  <div className="mb-3 px-3 py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-indigo-400 text-sm">
                     Where am I? You are currently in zone: <span className="font-semibold">{currentZone}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                      overallStatus === 'safe' ? 'bg-green-100' :
-                      overallStatus === 'moderate' ? 'bg-yellow-100' :
+                      overallStatus === 'safe' ? 'bg-emerald-500/20' :
+                      overallStatus === 'moderate' ? 'bg-yellow-500/20' :
                       overallStatus === 'high' ? 'bg-orange-100' :
-                      'bg-red-100'
+                      'bg-red-500/10 border-red-500/200/20'
                     }`}>
                       {overallStatus === 'safe' ? (
-                        <CheckCircle className="w-8 h-8 text-green-600" />
+                        <CheckCircle className="w-8 h-8 text-emerald-400" />
                       ) : (
                         <AlertTriangle className={`w-8 h-8 ${
-                          overallStatus === 'moderate' ? 'text-yellow-600' :
-                          overallStatus === 'high' ? 'text-orange-600' :
-                          'text-red-600'
+                          overallStatus === 'moderate' ? 'text-yellow-400' :
+                          overallStatus === 'high' ? 'text-orange-400' :
+                          'text-red-400'
                         }`} />
                       )}
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{eventData.totalCrowd?.toLocaleString()} people</p>
-                      <p className="text-gray-500">Currently at event</p>
+                      <p className="text-2xl font-bold text-white font-display">{eventData.totalCrowd?.toLocaleString()} people</p>
+                      <p className="text-slate-400">Currently at event</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-semibold ${
-                      overallStatus === 'safe' ? 'text-green-600' :
-                      overallStatus === 'moderate' ? 'text-yellow-600' :
-                      overallStatus === 'high' ? 'text-orange-600' :
-                      'text-red-600'
+                      overallStatus === 'safe' ? 'text-emerald-400' :
+                      overallStatus === 'moderate' ? 'text-yellow-400' :
+                      overallStatus === 'high' ? 'text-orange-400' :
+                      'text-red-400'
                     }`}>
                       {overallStatus === 'safe' ? 'Safe to Visit' :
                        overallStatus === 'moderate' ? 'Moderate Crowd' :
@@ -398,7 +398,7 @@ export default function PublicView() {
               </div>
 
               {/* Zone Status */}
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+              <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-6">
                 <div className="grid lg:grid-cols-[1.35fr,0.95fr] gap-6 items-start">
                   <BlueprintHeatmap
                     blueprint={venuePlan?.blueprint}
@@ -410,9 +410,9 @@ export default function PublicView() {
                   />
 
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                      <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Selected Area</p>
-                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                    <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
+                      <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-400">Selected Area</p>
+                      <h3 className="mt-2 text-2xl font-semibold text-white">
                         {selectedHeatmapZone?.name || 'No zone selected'}
                       </h3>
                       {selectedHeatmapZone ? (
@@ -420,30 +420,30 @@ export default function PublicView() {
                           <div className="mt-4 flex items-center gap-2">
                             <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${
                               selectedHeatmapZone.statusKey === 'overcrowded'
-                                ? 'bg-red-100 text-red-700'
+                                ? 'bg-red-500/10 border-red-500/200/20 text-red-400'
                                 : selectedHeatmapZone.statusKey === 'busy'
-                                  ? 'bg-orange-100 text-orange-700'
-                                  : 'bg-green-100 text-green-700'
+                                  ? 'bg-orange-100 text-orange-400'
+                                  : 'bg-emerald-500/20 text-emerald-400'
                             }`}>
                               {selectedHeatmapZone.statusLabel}
                             </span>
-                            <span className="text-sm text-slate-500">
+                            <span className="text-sm text-slate-400">
                               {selectedHeatmapZone.currentCount} / {selectedHeatmapZone.capacity} people
                             </span>
                           </div>
-                          <div className="mt-4 rounded-2xl bg-white p-4">
-                            <div className="text-sm text-slate-500">Occupancy</div>
-                            <div className="mt-2 text-3xl font-bold text-slate-950">{selectedHeatmapZone.occupancy}%</div>
-                            <div className="mt-2 text-sm text-slate-600">{getStatusText(selectedHeatmapZone.occupancy)}</div>
+                          <div className="mt-4 rounded-2xl bg-slate-900/50 backdrop-blur-md p-4">
+                            <div className="text-sm text-slate-400">Occupancy</div>
+                            <div className="mt-2 text-3xl font-bold text-white font-display">{selectedHeatmapZone.occupancy}%</div>
+                            <div className="mt-2 text-sm text-slate-400">{getStatusText(selectedHeatmapZone.occupancy)}</div>
                           </div>
                         </>
                       ) : (
-                        <p className="mt-4 text-sm text-slate-500">Select a zone on the map to inspect it.</p>
+                        <p className="mt-4 text-sm text-slate-400">Select a zone on the map to inspect it.</p>
                       )}
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                      <h3 className="text-lg font-semibold text-slate-950 mb-4">Zone Overview</h3>
+                    <div className="rounded-2xl border border-slate-700 bg-slate-900/50 backdrop-blur-md p-5">
+                      <h3 className="text-lg font-semibold text-white mb-4">Zone Overview</h3>
                       <div className="space-y-3">
                         {eventData.zones?.map((zone) => {
                           const matchingZone = heatmapZones.find((item) => item.name === zone.name)
@@ -453,21 +453,21 @@ export default function PublicView() {
                               key={zone.zoneId}
                               type="button"
                               onClick={() => matchingZone && setSelectedHeatmapZoneId(matchingZone.id)}
-                              className={`w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:bg-white ${
-                                matchingZone?.id === selectedHeatmapZone?.id ? 'ring-2 ring-primary-200 border-primary-300' : ''
+                              className={`w-full rounded-2xl border border-slate-700 bg-slate-800/50 p-4 text-left transition hover:bg-slate-900/50 backdrop-blur-md ${
+                                matchingZone?.id === selectedHeatmapZone?.id ? 'ring-2 ring-accent-cyan/50 border-accent-cyan' : ''
                               }`}
                             >
                               <div className="flex items-center justify-between gap-3 mb-2">
-                                <h4 className="font-semibold text-slate-900">{zone.name}</h4>
+                                <h4 className="font-semibold text-white">{zone.name}</h4>
                                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                  zone.status === 'safe' ? 'bg-green-100 text-green-800' :
-                                  zone.status === 'busy' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
+                                  zone.status === 'safe' ? 'bg-emerald-500/20 text-emerald-400' :
+                                  zone.status === 'busy' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-red-500/10 border-red-500/200/20 text-red-400'
                                 }`}>
                                   {zone.status === 'safe' ? 'Safe' : zone.status === 'busy' ? 'Busy' : 'Avoid'}
                                 </span>
                               </div>
-                              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                              <div className="flex items-center space-x-4 text-sm text-slate-400 mb-3">
                                 <span>{zone.currentCount} / {zone.capacity} people</span>
                                 <span>({zone.occupancy}% full)</span>
                               </div>
@@ -488,27 +488,27 @@ export default function PublicView() {
 
               {/* Alerts */}
               {eventData.alerts?.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Important Alerts</h2>
+                <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-6">
+                  <h2 className="text-lg font-semibold text-white mb-4">Important Alerts</h2>
                   <div className="space-y-3">
                     {eventData.alerts.map((alert, index) => (
                       <div
                         key={index}
                         className={`p-4 rounded-xl flex items-start space-x-3 ${
-                          alert.severity === 'emergency' ? 'bg-red-50 border border-red-200' :
-                          alert.severity === 'critical' ? 'bg-orange-50 border border-orange-200' :
-                          'bg-yellow-50 border border-yellow-200'
+                          alert.severity === 'emergency' ? 'bg-red-500/10 border-red-500/20 border border-red-500/30' :
+                          alert.severity === 'critical' ? 'bg-orange-500/10 border-orange-500/20 border border-orange-500/30' :
+                          'bg-yellow-500/10 border-yellow-500/20 border border-yellow-500/30'
                         }`}
                       >
                         <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                          alert.severity === 'emergency' ? 'text-red-600' :
-                          alert.severity === 'critical' ? 'text-orange-600' :
-                          'text-yellow-600'
+                          alert.severity === 'emergency' ? 'text-red-400' :
+                          alert.severity === 'critical' ? 'text-orange-400' :
+                          'text-yellow-400'
                         }`} />
                         <div>
-                          <p className="font-medium text-gray-900">{alert.message}</p>
+                          <p className="font-medium text-white">{alert.message}</p>
                           {alert.recommendedAction && (
-                            <p className="text-sm text-gray-600 mt-1">{alert.recommendedAction}</p>
+                            <p className="text-sm text-slate-400 mt-1">{alert.recommendedAction}</p>
                           )}
                         </div>
                       </div>
@@ -519,29 +519,29 @@ export default function PublicView() {
 
               {/* Recommendations */}
               {eventData.recommendations?.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommendations</h2>
+                <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6">
+                  <h2 className="text-lg font-semibold text-white mb-4">Recommendations</h2>
                   <div className="space-y-3">
                     {eventData.recommendations.map((rec, index) => (
-                      <div key={index} className="flex items-start space-x-3 p-4 bg-blue-50 rounded-xl">
-                        <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-gray-700">{rec.message}</p>
+                      <div key={index} className="flex items-start space-x-3 p-4 bg-accent-cyan/10 border-accent-cyan/20 rounded-xl">
+                        <CheckCircle className="w-5 h-5 text-accent-cyan mt-0.5 flex-shrink-0" />
+                        <p className="text-slate-300">{rec.message}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-6">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
                   <Navigation className="w-5 h-5" />
                   <span>Nearest Entry / Exit</span>
                 </h2>
-                <p className="text-sm text-indigo-600 mb-3">Flow arrows and safe route recommendations use indigo guidance.</p>
+                <p className="text-sm text-slate-400 mb-3">Flow arrows and safe route recommendations use indigo guidance.</p>
                 {flowArrows.length > 0 && (
                   <div className="mb-4 space-y-2">
                     {flowArrows.map((arrow, idx) => (
-                      <div key={idx} className="px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 animate-pulse">
+                      <div key={idx} className="px-3 py-2 rounded-lg bg-accent-purple/10 border border-accent-purple/30 text-accent-purple animate-pulse">
                         {arrow.message || `Move from (${arrow.from.x}, ${arrow.from.y}) to (${arrow.to.x}, ${arrow.to.y})`}
                       </div>
                     ))}
@@ -552,39 +552,39 @@ export default function PublicView() {
                     type="number"
                     value={position.x}
                     onChange={(e) => setPosition((prev) => ({ ...prev, x: Number(e.target.value) }))}
-                    className="px-3 py-2 border border-gray-200 rounded-lg"
+                    className="px-3 py-2 border border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 rounded-lg"
                     placeholder="X"
                   />
                   <input
                     type="number"
                     value={position.y}
                     onChange={(e) => setPosition((prev) => ({ ...prev, y: Number(e.target.value) }))}
-                    className="px-3 py-2 border border-gray-200 rounded-lg"
+                    className="px-3 py-2 border border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 rounded-lg"
                     placeholder="Y"
                   />
                   <button
                     onClick={getRouteHint}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                    className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple border-none shadow-[0_0_10px_rgba(6,182,212,0.3)] text-white rounded-lg hover:scale-[1.02] transition-transform"
                   >
                     Find Route
                   </button>
                 </div>
                 {routeHint && (
                   <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="font-semibold text-green-900">Nearest Entry</p>
-                      <p className="text-green-700">{routeHint.nearestEntry?.name}</p>
+                    <div className="p-3 bg-emerald-500/10 border-emerald-500/20 border border-emerald-500/30 rounded-lg">
+                      <p className="font-semibold text-emerald-400">Nearest Entry</p>
+                      <p className="text-white">{routeHint.nearestEntry?.name}</p>
                     </div>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="font-semibold text-blue-900">Nearest Exit</p>
-                      <p className="text-blue-700">{routeHint.nearestExit?.name}</p>
+                    <div className="p-3 bg-accent-cyan/10 border-accent-cyan/20 border border-accent-cyan/30 rounded-lg">
+                      <p className="font-semibold text-accent-cyan">Nearest Exit</p>
+                      <p className="text-white">{routeHint.nearestExit?.name}</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+              <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
                   <MessageSquare className="w-5 h-5" />
                   <span>Crowd Q&A and Live Feed</span>
                 </h2>
@@ -593,21 +593,21 @@ export default function PublicView() {
                     type="text"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
+                    className="flex-1 px-3 py-2 border border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 rounded-lg"
                     placeholder="Ask staff a question..."
                   />
-                  <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                  <button type="submit" className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple border-none shadow-[0_0_10px_rgba(6,182,212,0.3)] text-white rounded-lg hover:scale-[1.02] transition-transform">
                     Send
                   </button>
                 </form>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {liveFeed.length === 0 && (
-                    <p className="text-sm text-gray-500">No live messages yet.</p>
+                    <p className="text-sm text-slate-400">No live messages yet.</p>
                   )}
                   {liveFeed.map((item, idx) => (
-                    <div key={`${item.type}-${idx}`} className="p-3 rounded-lg bg-gray-50">
-                      <p className="text-sm font-medium capitalize text-gray-700">{item.type}</p>
-                      <p className="text-sm text-gray-900">{item.text}</p>
+                    <div key={`${item.type}-${idx}`} className="p-3 rounded-lg bg-slate-800/50">
+                      <p className="text-sm font-medium capitalize text-slate-300">{item.type}</p>
+                      <p className="text-sm text-white">{item.text}</p>
                     </div>
                   ))}
                 </div>
@@ -615,12 +615,12 @@ export default function PublicView() {
 
               {safetyOverlay && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                  <div className="max-w-lg w-full bg-white rounded-2xl border border-rose-200 shadow-xl p-6">
-                    <h3 className="text-lg font-semibold text-rose-700 mb-2">Safety Path Update</h3>
-                    <p className="text-gray-700">{safetyOverlay}</p>
+                  <div className="max-w-lg w-full bg-slate-900/50 backdrop-blur-md rounded-2xl border border-rose-500/30 shadow-xl p-6">
+                    <h3 className="text-lg font-semibold text-rose-400 mb-2">Safety Path Update</h3>
+                    <p className="text-slate-300">{safetyOverlay}</p>
                     <button
                       onClick={() => setSafetyOverlay(null)}
-                      className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                      className="mt-4 px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-lg hover:scale-[1.02] transition-transform"
                     >
                       Acknowledge
                     </button>
@@ -628,7 +628,7 @@ export default function PublicView() {
                 </div>
               )}
 
-              <div className="mt-6 text-center text-sm text-gray-500">
+              <div className="mt-6 text-center text-sm text-slate-400">
                 <p className="flex items-center justify-center space-x-2">
                   <RefreshCw className="w-4 h-4" />
                   <span>Last updated: {new Date(eventData.lastUpdated).toLocaleTimeString()}</span>

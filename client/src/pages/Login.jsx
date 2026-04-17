@@ -58,20 +58,20 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-50 to-primary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen pt-16 bg-transparent flex items-center justify-center p-4 relative overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 relative z-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
               <Users className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-600 mt-2">Role-based access for operations and crowd view</p>
+            <h1 className="text-2xl font-bold text-white font-display">Welcome Back</h1>
+            <p className="text-slate-400 mt-2">Role-based access for operations and crowd view</p>
           </div>
 
           {/* Error Message */}
@@ -79,7 +79,7 @@ export default function Login() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm"
+              className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
             >
               {error}
             </motion.div>
@@ -88,17 +88,17 @@ export default function Login() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Role</label>
               <div className="grid grid-cols-2 gap-2">
                 {roleOptions.map((role) => (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => setFormData({ ...formData, role: role.id })}
-                    className={`px-3 py-2 rounded-lg border text-sm font-medium ${
+                    className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
                       formData.role === role.id
-                        ? 'bg-slate-900 text-white border-slate-900'
-                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        ? 'bg-accent-cyan/20 text-accent-cyan border-accent-cyan shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                        : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
                     }`}
                   >
                     {role.label}
@@ -112,34 +112,34 @@ export default function Login() {
             {formData.role === 'user' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan outline-none transition-all"
                       placeholder="you@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      className="w-full pl-12 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan outline-none transition-all"
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -151,14 +151,14 @@ export default function Login() {
             {formData.role === 'staff' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Coordinator ID</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Coordinator ID</label>
                   <div className="relative">
-                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type="text"
                       value={formData.coordinatorId}
                       onChange={(e) => setFormData({ ...formData, coordinatorId: e.target.value.toUpperCase() })}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-accent-cyan/50 focus:border-accent-cyan outline-none transition-all"
                       placeholder="e.g., COORD001"
                     />
                   </div>
@@ -170,7 +170,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-semibold hover:scale-[1.02] transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 border-none"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -186,24 +186,24 @@ export default function Login() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-slate-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">or</span>
+              <span className="px-4 bg-slate-900 text-slate-500">or</span>
             </div>
           </div>
 
           {/* Links */}
           <div className="text-center space-y-3">
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 font-semibold hover:text-primary-700">
+              <Link to="/register" className="text-accent-cyan font-semibold hover:text-accent-purple transition-colors">
                 Register
               </Link>
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Are you an admin?{' '}
-              <Link to="/admin-login" className="text-primary-600 font-semibold hover:text-primary-700">
+              <Link to="/admin-login" className="text-accent-cyan font-semibold hover:text-accent-purple transition-colors">
                 Admin Login
               </Link>
             </p>

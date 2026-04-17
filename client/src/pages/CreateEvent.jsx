@@ -82,15 +82,15 @@ export default function CreateEvent() {
       {/* Header */}
       <button
         onClick={() => navigate('/dashboard')}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft className="w-5 h-5" />
         <span>Back to Dashboard</span>
       </button>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Event</h1>
-        <p className="text-gray-600 mt-1">Set up your event for crowd monitoring</p>
+        <h1 className="text-3xl font-bold text-white font-display">Create New Event</h1>
+        <p className="text-slate-400 mt-1">Set up your event for crowd monitoring</p>
       </div>
 
       {/* Progress */}
@@ -98,17 +98,17 @@ export default function CreateEvent() {
         <div className="flex items-center justify-between">
           {steps.map((s, index) => (
             <div key={s.number} className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                step >= s.number ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-500'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
+                step >= s.number ? 'bg-accent-cyan text-slate-900 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'bg-slate-800 border border-slate-700 text-slate-500'
               }`}>
                 {step > s.number ? <CheckCircle className="w-5 h-5" /> : s.number}
               </div>
               <div className="hidden sm:block ml-3">
-                <div className="text-sm font-medium text-gray-900">{s.title}</div>
-                <div className="text-xs text-gray-500">{s.description}</div>
+                <div className="text-sm font-medium text-slate-200">{s.title}</div>
+                <div className="text-xs text-slate-500">{s.description}</div>
               </div>
               {index < steps.length - 1 && (
-                <div className={`w-12 h-1 mx-4 ${step > s.number ? 'bg-primary-600' : 'bg-gray-200'}`} />
+                <div className={`w-12 h-1 mx-4 transition-colors ${step > s.number ? 'bg-accent-cyan shadow-[0_0_5px_rgba(6,182,212,0.4)]' : 'bg-slate-800'}`} />
               )}
             </div>
           ))}
@@ -116,40 +116,40 @@ export default function CreateEvent() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800 p-8">
         {step === 1 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Event Details</h2>
+            <h2 className="text-xl font-semibold text-white mb-6 font-display">Event Details</h2>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Event Name *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all"
                   placeholder="e.g., Summer Music Festival 2024"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none h-32 resize-none"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none h-32 resize-none transition-all"
                   placeholder="Describe your event..."
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Expected Crowd Size *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Expected Crowd Size *</label>
                 <div className="relative">
-                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                   <input
                     type="number"
                     value={formData.expectedCrowdSize}
                     onChange={(e) => setFormData({ ...formData, expectedCrowdSize: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all"
                     placeholder="5000"
                     required
                     min="1"
@@ -162,17 +162,17 @@ export default function CreateEvent() {
 
         {step === 2 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Location & Time</h2>
+            <h2 className="text-xl font-semibold text-white mb-6 font-display">Location & Time</h2>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location Address *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Location Address *</label>
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                   <input
                     type="text"
                     value={formData.location.address}
                     onChange={(e) => setFormData({ ...formData, location: { ...formData.location, address: e.target.value } })}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all"
                     placeholder="123 Event Street, City"
                     required
                   />
@@ -180,59 +180,59 @@ export default function CreateEvent() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Start Time *</label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type="datetime-local"
                       value={formData.startTime}
                       onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all [color-scheme:dark]"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">End Time *</label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type="datetime-local"
                       value={formData.endTime}
                       onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all [color-scheme:dark]"
                       required
                     />
                   </div>
                 </div>
               </div>
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5">
+              <div className="rounded-2xl border border-dashed border-slate-600 bg-slate-800/30 p-5">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-xl bg-white p-3 shadow-sm border border-gray-200">
-                    <ImageIcon className="w-5 h-5 text-primary-600" />
+                  <div className="rounded-xl bg-slate-800 p-3 shadow-sm border border-slate-700">
+                    <ImageIcon className="w-5 h-5 text-accent-cyan" />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Venue Blueprint</label>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Venue Blueprint</label>
+                    <p className="text-sm text-slate-500 mb-4">
                       Upload a venue image to use as the base for the event heatmap in admin and public view.
                     </p>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleBlueprintUpload(e.target.files?.[0])}
-                      className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-primary-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-primary-700"
+                      className="block w-full text-sm text-slate-400 file:mr-4 file:rounded-xl file:border-0 file:bg-accent-cyan file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-cyan-400 transition-all cursor-pointer"
                     />
                     {formData.blueprint && (
-                      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+                      <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-800/80 p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                           <img
                             src={formData.blueprint.imageData}
                             alt={formData.blueprint.fileName}
-                            className="h-24 w-full rounded-xl object-cover sm:w-40"
+                            className="h-24 w-full rounded-xl object-cover sm:w-40 border border-slate-600"
                           />
                           <div>
-                            <p className="font-medium text-gray-900">{formData.blueprint.fileName}</p>
-                            <p className="text-sm text-gray-500">Ready to use as the live heatmap background.</p>
+                            <p className="font-medium text-slate-200">{formData.blueprint.fileName}</p>
+                            <p className="text-sm text-slate-500">Ready to use as the live heatmap background.</p>
                           </div>
                         </div>
                       </div>
@@ -246,29 +246,29 @@ export default function CreateEvent() {
 
         {step === 3 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Define Zones</h2>
-            <p className="text-gray-600 mb-4">Add zones to monitor (e.g., Main Stage, Food Court, Entrance)</p>
+            <h2 className="text-xl font-semibold text-white mb-6 font-display">Define Zones</h2>
+            <p className="text-slate-400 mb-4">Add zones to monitor (e.g., Main Stage, Food Court, Entrance)</p>
             
             <div className="flex space-x-3 mb-6">
               <input
                 type="text"
                 value={newZone.name}
                 onChange={(e) => setNewZone({ ...newZone, name: e.target.value })}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                className="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all"
                 placeholder="Zone name"
               />
               <input
                 type="number"
                 value={newZone.capacity}
                 onChange={(e) => setNewZone({ ...newZone, capacity: e.target.value })}
-                className="w-32 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                className="w-32 px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan outline-none transition-all"
                 placeholder="Capacity"
                 min="1"
               />
               <button
                 type="button"
                 onClick={addZone}
-                className="px-4 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+                className="px-4 py-3 bg-accent-cyan text-slate-900 rounded-xl hover:bg-cyan-400 transition-colors shadow-[0_0_10px_rgba(6,182,212,0.3)]"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -277,15 +277,15 @@ export default function CreateEvent() {
             {formData.zones.length > 0 && (
               <div className="space-y-2">
                 {formData.zones.map((zone, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div key={index} className="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl">
                     <div>
-                      <span className="font-medium text-gray-900">{zone.name}</span>
-                      <span className="text-gray-500 ml-2">Capacity: {zone.capacity}</span>
+                      <span className="font-medium text-slate-200">{zone.name}</span>
+                      <span className="text-slate-500 ml-2">Capacity: {zone.capacity}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeZone(index)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-rose-400 hover:text-rose-300 transition-colors"
                     >
                       Remove
                     </button>
@@ -298,39 +298,39 @@ export default function CreateEvent() {
 
         {step === 4 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Review & Create</h2>
-            <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold text-white mb-6 font-display">Review & Create</h2>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 space-y-4">
               <div>
-                <span className="text-gray-500 text-sm">Event Name</span>
-                <p className="font-medium text-gray-900">{formData.name}</p>
+                <span className="text-slate-500 text-sm">Event Name</span>
+                <p className="font-medium text-white">{formData.name}</p>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Expected Crowd</span>
-                <p className="font-medium text-gray-900">{formData.expectedCrowdSize} people</p>
+                <span className="text-slate-500 text-sm">Expected Crowd</span>
+                <p className="font-medium text-white">{formData.expectedCrowdSize} people</p>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Location</span>
-                <p className="font-medium text-gray-900">{formData.location.address}</p>
+                <span className="text-slate-500 text-sm">Location</span>
+                <p className="font-medium text-white">{formData.location.address}</p>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Time</span>
-                <p className="font-medium text-gray-900">
+                <span className="text-slate-500 text-sm">Time</span>
+                <p className="font-medium text-white">
                   {new Date(formData.startTime).toLocaleString()} - {new Date(formData.endTime).toLocaleString()}
                 </p>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Zones ({formData.zones.length})</span>
+                <span className="text-slate-500 text-sm">Zones ({formData.zones.length})</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {formData.zones.map((zone, i) => (
-                    <span key={i} className="px-3 py-1 bg-white rounded-full text-sm">
+                    <span key={i} className="px-3 py-1 bg-slate-700 border border-slate-600 rounded-full text-sm text-slate-200">
                       {zone.name} ({zone.capacity})
                     </span>
                   ))}
                 </div>
               </div>
               <div>
-                <span className="text-gray-500 text-sm">Blueprint</span>
-                <p className="font-medium text-gray-900">
+                <span className="text-slate-500 text-sm">Blueprint</span>
+                <p className="font-medium text-white">
                   {formData.blueprint?.fileName || 'No blueprint uploaded'}
                 </p>
               </div>
@@ -339,12 +339,12 @@ export default function CreateEvent() {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
+        <div className="flex justify-between mt-8 pt-6 border-t border-slate-800">
           <button
             type="button"
             onClick={() => setStep(Math.max(1, step - 1))}
             disabled={step === 1}
-            className="px-6 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 border border-slate-700 rounded-xl font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
@@ -353,7 +353,7 @@ export default function CreateEvent() {
             <button
               type="button"
               onClick={() => setStep(step + 1)}
-              className="px-6 py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700"
+              className="px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-medium hover:scale-105 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)] border-none"
             >
               Next
             </button>
@@ -361,7 +361,7 @@ export default function CreateEvent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center space-x-2"
+              className="px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-medium hover:scale-[1.02] transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)] disabled:opacity-50 flex items-center space-x-2 border-none"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Outfit', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#eff6ff',
@@ -18,6 +22,11 @@ export default {
           700: '#1d4ed8',
           800: '#1e40af',
           900: '#1e3a8a',
+        },
+        accent: {
+          cyan: '#06b6d4',
+          purple: '#8b5cf6',
+          pink: '#ec4899',
         },
         crowd: {
           safe: '#10b981',

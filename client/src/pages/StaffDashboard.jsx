@@ -90,23 +90,23 @@ export default function StaffDashboard() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Coordinator Portal</h1>
-            <p className="text-gray-600 mt-2">Incident reporting, Q&A response, and live command feed.</p>
+            <h1 className="text-3xl font-bold text-white font-display">Coordinator Portal</h1>
+            <p className="text-slate-400 mt-2">Incident reporting, Q&A response, and live command feed.</p>
           </div>
-          <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100">
-            <Radio className={`w-4 h-4 ${connected ? 'text-green-600' : 'text-red-600'}`} />
-            <span className="text-sm text-gray-700">{connected ? 'Socket connected' : 'Socket disconnected'}</span>
+          <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700 shadow-inner">
+            <Radio className={`w-4 h-4 ${connected ? 'text-emerald-400' : 'text-rose-400'}`} />
+            <span className="text-sm text-slate-300">{connected ? 'Socket connected' : 'Socket disconnected'}</span>
           </div>
         </div>
       </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6 mt-8">
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <label className="text-sm font-medium text-gray-700 block mb-2">Active Event</label>
+        <div className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
+          <label className="text-sm font-medium text-slate-300 block mb-2">Active Event</label>
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white outline-none focus:border-accent-purple"
           >
             {events.length === 0 && <option value="">No events available</option>}
             {events.map((event) => (
@@ -115,50 +115,50 @@ export default function StaffDashboard() {
           </select>
         </div>
 
-        <form onSubmit={submitIncident} className="bg-white rounded-xl border border-gray-100 p-4">
-          <h2 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-orange-600" />
+        <form onSubmit={submitIncident} className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
+          <h2 className="font-semibold text-white mb-3 flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
             <span>Report Incident</span>
           </h2>
           <textarea
             value={incident}
             onChange={(e) => setIncident(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg h-24"
+            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg h-24 text-white placeholder-slate-500 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
             placeholder="Describe the incident..."
           />
-          <button type="submit" className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+          <button type="submit" className="mt-3 px-4 py-2 bg-orange-500/20 text-orange-400 border border-orange-500/50 rounded-lg hover:bg-orange-500/30 transition-colors">
             Report
           </button>
         </form>
 
-        <form onSubmit={submitAnswer} className="bg-white rounded-xl border border-gray-100 p-4">
-          <h2 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-            <Send className="w-4 h-4 text-primary-600" />
+        <form onSubmit={submitAnswer} className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
+          <h2 className="font-semibold text-white mb-3 flex items-center space-x-2">
+            <Send className="w-4 h-4 text-accent-cyan" />
             <span>Send Crowd Answer</span>
           </h2>
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg h-24"
+            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg h-24 text-white placeholder-slate-500 outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
             placeholder="Answer a public question..."
           />
-          <button type="submit" className="mt-3 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+          <button type="submit" className="mt-3 px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)] border-none">
             Broadcast
           </button>
         </form>
       </div>
 
-      <div className="mt-6 bg-white rounded-xl border border-gray-100 p-4">
-        <h2 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-          <MessageSquare className="w-4 h-4 text-gray-700" />
+      <div className="mt-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
+        <h2 className="font-semibold text-white mb-3 flex items-center space-x-2">
+          <MessageSquare className="w-4 h-4 text-slate-400" />
           <span>Live Feed</span>
         </h2>
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {feed.length === 0 && <p className="text-sm text-gray-500">No live activity yet.</p>}
+        <div className="space-y-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+          {feed.length === 0 && <p className="text-sm text-slate-500">No live activity yet.</p>}
           {feed.map((item, index) => (
-            <div key={`${item.type}-${index}`} className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs uppercase text-gray-500">{item.type}</p>
-              <p className="text-sm text-gray-900">{item.text}</p>
+            <div key={`${item.type}-${index}`} className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg">
+              <p className="text-xs uppercase text-slate-500">{item.type}</p>
+              <p className="text-sm text-slate-200 mt-1">{item.text}</p>
             </div>
           ))}
         </div>

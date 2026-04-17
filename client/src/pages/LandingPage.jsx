@@ -60,9 +60,9 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <div className="pt-16">
+    <div className="pt-16 bg-slate-950 text-slate-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 text-white">
+      <section className="relative overflow-hidden bg-transparent">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         
@@ -77,27 +77,27 @@ export default function LandingPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-8"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-accent-cyan/10 border border-accent-cyan/20 backdrop-blur-md rounded-full text-sm font-medium mb-8 text-accent-cyan shadow-[0_0_15px_rgba(6,182,212,0.2)]"
             >
               <Shield className="w-4 h-4" />
               <span>AI-Powered Crowd Management</span>
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight font-display">
               Manage Crowds{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-300 to-primary-100">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-purple">
                 Intelligently
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-primary-100 mb-10 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-slate-300 mb-10 max-w-2xl mx-auto">
               Real-time crowd monitoring, AI predictions, and smart alerts for safer events and venues.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/register"
-                className="group inline-flex items-center space-x-2 px-8 py-4 bg-white text-primary-900 rounded-xl font-semibold hover:bg-primary-50 transition-all hover:scale-105"
+                className="group inline-flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
               >
                 <span>Get Started</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -114,7 +114,7 @@ export default function LandingPage() {
         </div>
 
         {/* Stats */}
-        <div className="relative border-t border-white/10">
+        <div className="relative border-t border-white/5 bg-white/5 backdrop-blur-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {[
@@ -139,7 +139,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -147,8 +147,8 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Powerful Features</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-4xl font-bold text-white mb-4 font-display">Powerful Features</h2>
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
               Everything you need to monitor, predict, and manage crowd density effectively.
             </p>
           </motion.div>
@@ -161,13 +161,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group p-8 bg-gray-50 rounded-2xl hover:bg-primary-50 transition-all duration-300 hover:shadow-lg"
+                className="group p-8 bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl hover:bg-slate-800 hover:border-accent-cyan/50 transition-all duration-300 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
               >
-                <div className="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-200 transition-colors">
-                  <feature.icon className="w-7 h-7 text-primary-600" />
+                <div className="w-14 h-14 bg-slate-700/50 border border-slate-600 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent-cyan/20 group-hover:border-accent-cyan/50 transition-all">
+                  <feature.icon className="w-7 h-7 text-accent-cyan" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-slate-400">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -175,7 +175,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-24 bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -183,8 +183,8 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-4xl font-bold text-white mb-4 font-display">How It Works</h2>
+            <p className="text-xl text-slate-400 max-w-2xl mx-auto">
               Get started with crowd management in four simple steps.
             </p>
           </motion.div>
@@ -199,11 +199,11 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.15 }}
                 className="relative"
               >
-                <div className="text-6xl font-bold text-primary-200 mb-4">{step.number}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
+                <div className="text-6xl font-bold text-slate-800 group-hover:text-slate-700 transition-colors mb-4">{step.number}</div>
+                <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
+                <p className="text-slate-400">{step.description}</p>
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 right-0 w-full h-px bg-gradient-to-r from-primary-300 to-transparent" />
+                  <div className="hidden lg:block absolute top-8 right-0 w-full h-px bg-gradient-to-r from-slate-800 to-transparent" />
                 )}
               </motion.div>
             ))}
@@ -212,29 +212,30 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-primary-900">
+      <section className="py-24 bg-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-accent-purple/5 blur-[100px] rounded-full" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl font-bold text-white mb-6">
+            <h2 className="text-4xl font-bold text-white mb-6 font-display">
               Ready to manage your crowds intelligently?
             </h2>
-            <p className="text-xl text-primary-100 mb-10">
+            <p className="text-xl text-slate-300 mb-10">
               Join thousands of event organizers using CrowdIntel for safer, smarter events.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/register"
-                className="px-8 py-4 bg-white text-primary-900 rounded-xl font-semibold hover:bg-primary-50 transition-all"
+                className="px-8 py-4 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:shadow-[0_0_30px_rgba(139,92,246,0.5)]"
               >
                 Create Free Account
               </Link>
               <Link
                 to="/access"
-                className="px-8 py-4 bg-primary-800 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all"
+                className="px-8 py-4 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-700 border border-slate-700 transition-all hover:border-slate-500"
               >
                 Access Portal
               </Link>
@@ -244,15 +245,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
+      <footer className="bg-slate-950 border-t border-slate-900 text-slate-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl text-white">Crowd<span className="text-primary-400">Intel</span></span>
+                <span className="font-bold text-xl text-white font-display">Crowd<span className="text-accent-cyan">Intel</span></span>
               </div>
               <p className="text-sm">AI-powered crowd management for safer events and venues.</p>
             </div>

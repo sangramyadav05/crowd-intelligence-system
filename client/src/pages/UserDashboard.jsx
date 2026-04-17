@@ -74,9 +74,9 @@ export default function UserDashboard() {
     const start = new Date(event.startTime)
     const end = new Date(event.endTime)
     
-    if (now < start) return 'bg-blue-100 text-blue-800'
-    if (now > end) return 'bg-gray-100 text-gray-800'
-    return 'bg-green-100 text-green-800'
+    if (now < start) return 'bg-accent-purple/20 text-accent-purple border border-accent-purple/30'
+    if (now > end) return 'bg-slate-800 text-slate-400 border border-slate-700'
+    return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
   }
 
   const getStatusText = (event) => {
@@ -93,13 +93,13 @@ export default function UserDashboard() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+      className="bg-slate-900/50 backdrop-blur-md rounded-xl p-6 shadow-lg border border-slate-800 hover:border-accent-cyan/50 transition-colors"
     >
-      <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4`}>
+      <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4 border border-white/5`}>
         <Icon className="w-6 h-6" />
       </div>
-      <div className="text-3xl font-bold text-gray-900">{value}</div>
-      <div className="text-gray-500 text-sm">{label}</div>
+      <div className="text-3xl font-bold text-white font-display">{value}</div>
+      <div className="text-slate-400 text-sm">{label}</div>
     </motion.div>
   )
 
@@ -108,12 +108,12 @@ export default function UserDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Manage your events and monitor crowd status</p>
+          <h1 className="text-3xl font-bold text-white font-display">Dashboard</h1>
+          <p className="text-slate-400 mt-1">Manage your events and monitor crowd status</p>
         </div>
         <Link
           to="/events/create"
-          className="mt-4 sm:mt-0 inline-flex items-center space-x-2 px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all"
+          className="mt-4 sm:mt-0 inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-xl font-semibold hover:scale-[1.02] transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] border-none"
         >
           <Plus className="w-5 h-5" />
           <span>Create Event</span>
@@ -126,56 +126,56 @@ export default function UserDashboard() {
           icon={Calendar} 
           label="Total Events" 
           value={stats.totalEvents} 
-          color="bg-primary-100 text-primary-600"
+          color="bg-accent-cyan/20 text-accent-cyan"
         />
         <StatCard 
           icon={Activity} 
           label="Active Events" 
           value={stats.activeEvents} 
-          color="bg-green-100 text-green-600"
+          color="bg-emerald-500/20 text-emerald-400"
         />
         <StatCard 
           icon={Users} 
           label="People Monitored" 
           value={stats.totalCrowd.toLocaleString()} 
-          color="bg-blue-100 text-blue-600"
+          color="bg-accent-purple/20 text-accent-purple"
         />
         <StatCard 
           icon={AlertCircle} 
           label="Active Alerts" 
           value={stats.alerts} 
-          color="bg-red-100 text-red-600"
+          color="bg-rose-500/20 text-rose-400"
         />
       </div>
 
       {/* Events List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Your Events</h2>
-          <TrendingUp className="w-5 h-5 text-gray-400" />
+      <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Your Events</h2>
+          <TrendingUp className="w-5 h-5 text-slate-500" />
         </div>
 
         {isLoading ? (
           <div className="p-8 text-center">
-            <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-4 border-slate-700 border-t-accent-cyan rounded-full animate-spin mx-auto" />
           </div>
         ) : events.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700">
+              <Calendar className="w-8 h-8 text-slate-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
-            <p className="text-gray-500 mb-4">Create your first event to start monitoring crowds</p>
+            <h3 className="text-lg font-medium text-white mb-2">No events yet</h3>
+            <p className="text-slate-400 mb-4">Create your first event to start monitoring crowds</p>
             <Link
               to="/events/create"
-              className="inline-flex items-center space-x-2 text-primary-600 font-semibold hover:text-primary-700"
+              className="inline-flex items-center space-x-2 text-accent-cyan font-semibold hover:text-accent-purple transition-colors"
             >
               <Plus className="w-5 h-5" />
               <span>Create Event</span>
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-slate-800">
             {events.map((event, index) => (
               <motion.div
                 key={event._id}
@@ -185,17 +185,17 @@ export default function UserDashboard() {
               >
                 <Link
                   to={`/events/${event._id}`}
-                  className="block px-6 py-4 hover:bg-gray-50 transition-colors"
+                  className="block px-6 py-4 hover:bg-slate-800/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">{event.name}</h3>
+                        <h3 className="text-lg font-semibold text-white truncate">{event.name}</h3>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event)}`}>
                           {getStatusText(event)}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 mt-2 text-sm text-slate-400">
                         <span className="flex items-center space-x-1">
                           <Calendar className="w-4 h-4" />
                           <span>{new Date(event.startTime).toLocaleDateString()}</span>
@@ -211,13 +211,13 @@ export default function UserDashboard() {
                       </div>
                     </div>
                     <div className="ml-4 flex items-center space-x-2">
-                      <ArrowRight className="w-5 h-5 text-gray-400" />
+                      <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-accent-cyan transition-colors" />
                       <button
                         onClick={(e) => handleDeleteEvent(event._id, event.name, e)}
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                        className="p-2 hover:bg-rose-500/10 rounded-lg transition-colors group"
                         title="Delete event"
                       >
-                        <Trash2 className="w-5 h-5 text-gray-400 group-hover:text-red-600" />
+                        <Trash2 className="w-5 h-5 text-slate-500 group-hover:text-rose-400" />
                       </button>
                     </div>
                   </div>

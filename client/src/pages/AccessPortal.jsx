@@ -8,10 +8,10 @@ const roles = [
     title: 'Crowd Manager',
     description: 'Sign in with your registered account details.',
     icon: LogIn,
-    accent: 'bg-slate-900 text-white',
-    iconBg: 'bg-slate-900/10',
-    iconColor: 'text-slate-900',
-    glowColor: 'from-slate-900/20 to-transparent',
+    accent: 'bg-gradient-to-r from-accent-cyan to-accent-purple text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] border-none',
+    iconBg: 'bg-slate-800/50 border-slate-700',
+    iconColor: 'text-accent-cyan',
+    glowColor: 'from-accent-cyan/20 to-transparent',
     link: '/login'
   },
   {
@@ -19,10 +19,10 @@ const roles = [
     title: 'Coordinator',
     description: 'Incidents, Q&A responses, field updates.',
     icon: Users,
-    accent: 'bg-indigo-600 text-white',
-    iconBg: 'bg-indigo-600/10',
-    iconColor: 'text-indigo-600',
-    glowColor: 'from-indigo-600/20 to-transparent',
+    accent: 'bg-slate-800 text-white border border-slate-700 hover:border-accent-purple/50 shadow-[0_0_10px_rgba(139,92,246,0.1)]',
+    iconBg: 'bg-slate-800/50 border-slate-700',
+    iconColor: 'text-accent-purple',
+    glowColor: 'from-accent-purple/20 to-transparent',
     link: '/login?role=staff'
   }
 ]
@@ -47,11 +47,11 @@ const itemVariants = {
 
 export default function AccessPortal() {
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-slate-900 overflow-hidden relative">
+    <div className="min-h-screen pt-16 bg-transparent text-slate-50 overflow-hidden relative">
       {/* Animated background elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-40 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      <div className="absolute top-20 left-10 w-72 h-72 bg-accent-cyan/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+      <div className="absolute top-40 right-10 w-72 h-72 bg-accent-purple/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-primary-900/30 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-4000"></div>
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <motion.div 
@@ -64,16 +64,16 @@ export default function AccessPortal() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, type: 'spring' }}
-            className="inline-flex items-center space-x-2 mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200"
+            className="inline-flex items-center space-x-2 mb-6 px-4 py-2 rounded-full bg-accent-purple/10 border border-accent-purple/20 backdrop-blur-md shadow-[0_0_15px_rgba(139,92,246,0.2)]"
           >
-            <Zap className="w-4 h-4 text-purple-600" />
-            <span className="text-sm font-semibold text-purple-700">Live Operations Platform</span>
+            <Zap className="w-4 h-4 text-accent-purple" />
+            <span className="text-sm font-semibold text-accent-purple">Live Operations Platform</span>
           </motion.div>
           
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-accent-cyan via-white to-accent-purple bg-clip-text text-transparent mb-4 font-display">
             Access Portal
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
             Select your role to enter the dynamic crowd operations center and take command of live events
           </p>
         </motion.div>
@@ -95,13 +95,13 @@ export default function AccessPortal() {
               <div className={`absolute inset-0 bg-gradient-to-r ${role.glowColor} rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300`}></div>
               
               {/* Card */}
-              <div className="relative rounded-2xl border border-white/40 backdrop-blur-lg bg-white/80 hover:bg-white/95 shadow-lg hover:shadow-2xl transition-all duration-300 p-8 h-full">
+              <div className="relative rounded-2xl border border-slate-700/50 backdrop-blur-xl bg-slate-900/50 hover:bg-slate-800/80 hover:border-accent-cyan/30 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300 p-8 h-full">
                 
                 {/* Icon container */}
                 <div className="mb-6">
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
-                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${role.iconBg} backdrop-blur-sm border border-white/50`}
+                    className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${role.iconBg} backdrop-blur-sm border`}
                   >
                     <role.icon className={`w-8 h-8 ${role.iconColor}`} />
                   </motion.div>
@@ -109,10 +109,10 @@ export default function AccessPortal() {
 
                 {/* Content */}
                 <div className="mb-6">
-                  <h2 className={`text-2xl font-bold mb-2 bg-gradient-to-r ${role.accent === 'bg-slate-900 text-white' ? 'from-slate-900 to-slate-700' : role.accent === 'bg-indigo-600 text-white' ? 'from-indigo-600 to-indigo-700' : role.accent === 'bg-emerald-600 text-white' ? 'from-emerald-600 to-emerald-700' : 'from-blue-600 to-blue-700'} bg-clip-text text-transparent`}>
+                  <h2 className="text-2xl font-bold mb-2 text-white">
                     {role.title}
                   </h2>
-                  <p className="text-slate-600 leading-relaxed">
+                  <p className="text-slate-400 leading-relaxed">
                     {role.description}
                   </p>
                 </div>
@@ -141,9 +141,9 @@ export default function AccessPortal() {
           transition={{ delay: 0.6 }}
           className="text-center"
         >
-          <p className="text-slate-600">
+          <p className="text-slate-400">
             Looking for public access code lookup?{' '}
-            <Link to="/public" className="font-semibold text-purple-600 hover:text-purple-700 hover:underline transition-colors">
+            <Link to="/public" className="font-semibold text-accent-cyan hover:text-accent-purple transition-colors">
               Go to Public View
             </Link>
           </p>

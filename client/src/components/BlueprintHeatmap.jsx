@@ -5,19 +5,19 @@ const STATUS_STYLES = {
     fill: 'rgba(34, 197, 94, 0.26)',
     glow: 'rgba(34, 197, 94, 0.18)',
     stroke: '#15803d',
-    badge: 'bg-green-100 text-green-700 border-green-200'
+    badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
   },
   busy: {
     fill: 'rgba(249, 115, 22, 0.26)',
     glow: 'rgba(249, 115, 22, 0.18)',
     stroke: '#c2410c',
-    badge: 'bg-orange-100 text-orange-700 border-orange-200'
+    badge: 'bg-orange-500/20 text-orange-400 border-orange-500/30'
   },
   overcrowded: {
     fill: 'rgba(239, 68, 68, 0.3)',
     glow: 'rgba(239, 68, 68, 0.2)',
     stroke: '#b91c1c',
-    badge: 'bg-red-100 text-red-700 border-red-200'
+    badge: 'bg-red-500/20 text-red-400 border-red-500/30'
   }
 }
 
@@ -48,29 +48,29 @@ export default function BlueprintHeatmap({
   const [imageAspectRatio, setImageAspectRatio] = useState('16 / 10')
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[1.75rem] border border-slate-700 bg-slate-900/50 backdrop-blur-md p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
-          <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-green-700">
-            <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
             Safe
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-orange-700">
-            <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-400/10 px-3 py-1 text-orange-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-orange-400" />
             Busy
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-red-700">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-400/10 px-3 py-1 text-red-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
             Overcrowded
           </span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-950">
+      <div className="overflow-hidden rounded-[1.5rem] border border-slate-700 bg-slate-950">
         <div
           className="relative"
           style={{ aspectRatio: blueprint?.imageData ? imageAspectRatio : '16 / 10' }}
@@ -90,7 +90,7 @@ export default function BlueprintHeatmap({
           ) : (
             <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_100%)]">
               <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:32px_32px]" />
-              <div className="absolute bottom-4 left-4 rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">
+              <div className="absolute bottom-4 left-4 rounded-full bg-slate-900/50 backdrop-blur-md/10 px-3 py-1 text-xs text-white/80">
                 Upload a venue blueprint to replace this placeholder canvas
               </div>
             </div>
@@ -163,13 +163,13 @@ export default function BlueprintHeatmap({
               onClick={() => onSelectZone?.(zone.id)}
               className={`rounded-2xl border px-3 py-2 text-left transition ${
                 isSelected
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-white'
+                  ? 'border-accent-cyan bg-accent-cyan/20 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)] ring-2 ring-accent-cyan/50'
+                  : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700 backdrop-blur-md'
               }`}
             >
               <div className="text-sm font-semibold">{zone.name}</div>
               <div className="mt-1 flex items-center gap-2 text-xs">
-                <span className={`inline-flex rounded-full border px-2 py-0.5 ${isSelected ? 'border-white/20 bg-white/10 text-white' : style.badge}`}>
+                <span className={`inline-flex rounded-full border px-2 py-0.5 ${isSelected ? 'border-accent-cyan/50 bg-accent-cyan/20 text-accent-cyan' : style.badge}`}>
                   {zone.statusLabel}
                 </span>
                 <span>{zone.currentCount}/{zone.capacity}</span>
