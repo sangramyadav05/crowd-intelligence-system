@@ -15,6 +15,37 @@ const validate = (req, res, next) => {
   next();
 };
 
+const buildFixedCoordinatorId = (event) => `CO-${String(event.accessCode).toUpperCase()}`;
+
+const ensureFixedCoordinatorForEvent = async (event) => {
+  const coordinatorId = buildFixedCoordinatorId(event);
+  const existingCoordinator = event.coordinators?.find((item) => item.coordinatorId === coordinatorId);
+  if (existingCoordinator) return existingCoordinator;
+
+  const coordinatorEmail = `coordinator-${String(event._id)}@system.local`;
+  let coordinatorUser = await User.findOne({ email: coordinatorEmail, role: 'staff' });
+
+  if (!coordinatorUser) {
+    coordinatorUser = await User.create({
+      name: `${event.name} Coordinator`,
+      email: coordinatorEmail,
+      password: `Temp_${coordinatorId}_${Date.now()}`,
+      role: 'staff'
+    });
+  }
+
+  event.coordinators = [
+    {
+      coordinatorId,
+      userId: coordinatorUser._id,
+      name: coordinatorUser.name,
+      status: 'active'
+    }
+  ];
+  await event.save();
+  return event.coordinators[0];
+};
+
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
@@ -69,7 +100,6 @@ router.post(
     body('email').optional().isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').optional().notEmpty().withMessage('Password is required'),
     body('coordinatorId').optional().isString().trim().toUpperCase(),
-    body('eventId').optional().isString().trim(),
     validate
   ],
   async (req, res) => {
@@ -78,8 +108,7 @@ router.post(
         role = 'user',
         email,
         password,
-        coordinatorId,
-        eventId
+        coordinatorId
       } = req.body;
 
       // Crowd Manager login with email and password
@@ -106,40 +135,42 @@ router.post(
 
       // Coordinator login with Coordinator ID
       if (role === 'staff') {
-        if (!coordinatorId || !eventId) {
-          return res.status(400).json({ message: 'Coordinator ID and Event ID are required for Coordinator login' });
+        if (!coordinatorId) {
+          return res.status(400).json({ message: 'Coordinator ID is required for Coordinator login' });
         }
 
         // Find event and verify coordinator is assigned
-        const event = await Event.findOne({
-          _id: eventId,
+        let event = await Event.findOne({
           'coordinators.coordinatorId': coordinatorId
         });
 
+        if (!event && coordinatorId.startsWith('CO-')) {
+          const derivedAccessCode = coordinatorId.slice(3);
+          event = await Event.findOne({ accessCode: derivedAccessCode });
+          if (event) {
+            await ensureFixedCoordinatorForEvent(event);
+          }
+        }
+
         if (!event) {
-          return res.status(401).json({ message: 'Invalid Coordinator ID or Event ID' });
+          return res.status(401).json({ message: 'Invalid Coordinator ID' });
         }
 
         // Find coordinator in event
-        const coordinatorInfo = event.coordinators.find(c => c.coordinatorId === coordinatorId);
+        const coordinatorInfo = event.coordinators.find(c => c.coordinatorId === coordinatorId)
+          || await ensureFixedCoordinatorForEvent(event);
         
         if (coordinatorInfo.status !== 'active') {
           return res.status(401).json({ message: 'Coordinator account is inactive' });
         }
 
-        // Find or create coordinator user if needed
-        let user;
-        if (coordinatorInfo.userId) {
-          user = await User.findById(coordinatorInfo.userId);
-          if (!user) {
-            return res.status(401).json({ message: 'Coordinator user not found' });
-          }
-        } else {
-          // Try to find user by coordinatorId
-          user = await User.findOne({ coordinatorId, role: 'staff' });
-          if (!user) {
-            return res.status(401).json({ message: 'Coordinator account not found' });
-          }
+        if (!coordinatorInfo.userId) {
+          return res.status(401).json({ message: 'Coordinator account not linked to this event' });
+        }
+
+        const user = await User.findById(coordinatorInfo.userId);
+        if (!user) {
+          return res.status(401).json({ message: 'Coordinator user not found' });
         }
 
         user.lastLogin = new Date();
@@ -149,7 +180,9 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.role,
-          coordinatorId: user.coordinatorId,
+          coordinatorId,
+          eventId: event.eventId,
+          accessCode: event.accessCode,
           token: generateToken(user._id)
         });
       }
