@@ -44,6 +44,9 @@ router.get('/:eventId', async (req, res) => {
     } else if ((!plan.zones || plan.zones.length === 0) && fallbackZones.length > 0) {
       plan.zones = fallbackZones;
       await plan.save();
+    } else if (JSON.stringify(plan.zones || []) !== JSON.stringify(fallbackZones)) {
+      plan.zones = fallbackZones;
+      await plan.save();
     }
     res.json(plan);
   } catch (error) {

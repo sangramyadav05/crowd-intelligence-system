@@ -1,16 +1,21 @@
+import { useState } from 'react'
+
 const STATUS_STYLES = {
   safe: {
-    fill: 'rgba(34, 197, 94, 0.35)',
+    fill: 'rgba(34, 197, 94, 0.26)',
+    glow: 'rgba(34, 197, 94, 0.18)',
     stroke: '#15803d',
     badge: 'bg-green-100 text-green-700 border-green-200'
   },
   busy: {
-    fill: 'rgba(249, 115, 22, 0.35)',
+    fill: 'rgba(249, 115, 22, 0.26)',
+    glow: 'rgba(249, 115, 22, 0.18)',
     stroke: '#c2410c',
     badge: 'bg-orange-100 text-orange-700 border-orange-200'
   },
   overcrowded: {
-    fill: 'rgba(239, 68, 68, 0.4)',
+    fill: 'rgba(239, 68, 68, 0.3)',
+    glow: 'rgba(239, 68, 68, 0.2)',
     stroke: '#b91c1c',
     badge: 'bg-red-100 text-red-700 border-red-200'
   }
@@ -40,12 +45,14 @@ export default function BlueprintHeatmap({
   title = 'Venue Heatmap',
   subtitle = 'Live zone intensity overlay'
 }) {
+  const [imageAspectRatio, setImageAspectRatio] = useState('16 / 10')
+
   return (
     <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-          <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-green-700">
@@ -64,12 +71,21 @@ export default function BlueprintHeatmap({
       </div>
 
       <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-950">
-        <div className="relative aspect-[16/10]">
+        <div
+          className="relative"
+          style={{ aspectRatio: blueprint?.imageData ? imageAspectRatio : '16 / 10' }}
+        >
           {blueprint?.imageData ? (
             <img
               src={blueprint.imageData}
               alt={blueprint.fileName || 'Venue blueprint'}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-fill"
+              onLoad={(event) => {
+                const { naturalWidth, naturalHeight } = event.currentTarget
+                if (naturalWidth && naturalHeight) {
+                  setImageAspectRatio(`${naturalWidth} / ${naturalHeight}`)
+                }
+              }}
             />
           ) : (
             <div className="absolute inset-0 bg-[linear-gradient(135deg,#0f172a_0%,#1e293b_100%)]">
@@ -92,27 +108,37 @@ export default function BlueprintHeatmap({
                     points={zone.polygon.map((point) => `${point.x},${point.y}`).join(' ')}
                     fill={style.fill}
                     stroke={style.stroke}
-                    strokeWidth={isSelected ? 1.4 : 0.7}
+                    strokeWidth={isSelected ? 1.1 : 0.7}
                     className="cursor-pointer transition-all duration-200"
                     onClick={() => onSelectZone?.(zone.id)}
                   />
                   <circle
                     cx={center.x}
                     cy={center.y}
-                    r={isSelected ? 1.9 : 1.4}
+                    r={isSelected ? 3.2 : 2.4}
+                    fill={style.glow}
+                    stroke={style.stroke}
+                    strokeWidth={isSelected ? 0.45 : 0.22}
+                    className="pointer-events-none"
+                  />
+                  <circle
+                    cx={center.x}
+                    cy={center.y}
+                    r={isSelected ? 1.7 : 1.25}
                     fill={style.stroke}
+                    className="pointer-events-none"
                   />
                   <text
                     x={center.x}
-                    y={center.y - 2.4}
+                    y={center.y - 2.6}
                     textAnchor="middle"
-                    className="fill-white text-[4px] font-semibold tracking-[0.12em]"
+                    className="fill-white text-[3.8px] font-semibold tracking-[0.08em]"
                   >
                     {zone.name}
                   </text>
                   <text
                     x={center.x}
-                    y={center.y + 3}
+                    y={center.y + 3.2}
                     textAnchor="middle"
                     className="fill-white/90 text-[3px]"
                   >
