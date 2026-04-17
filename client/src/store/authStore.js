@@ -15,18 +15,36 @@ export const useAuthStore = create(
       isLoading: false,
       error: null,
 
-      initializeAuth: () => {
+      initializeAuth: async () => {
         const token = get().token
         if (token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+          try {
+            const { data } = await axios.get('/auth/validate')
+            if (!data?.valid) {
+              get().logout()
+              return
+            }
+
+            set({
+              user: data.user,
+              isAuthenticated: true
+            })
+          } catch (error) {
+            get().logout()
+          }
         }
       },
 
-      login: async (email, password, isAdmin = false) => {
+      login: async (payloadOrEmail, password, isAdmin = false) => {
         set({ isLoading: true, error: null })
         try {
+          const isObjectPayload = typeof payloadOrEmail === 'object' && payloadOrEmail !== null
+          const payload = isObjectPayload
+            ? payloadOrEmail
+            : { email: payloadOrEmail, password }
           const endpoint = isAdmin ? '/auth/admin-login' : '/auth/login'
-          const { data } = await axios.post(endpoint, { email, password })
+          const { data } = await axios.post(endpoint, payload)
           
           axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
           

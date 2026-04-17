@@ -64,6 +64,7 @@ router.post('/lookup', async (req, res) => {
     res.json({
       event: {
         _id: event._id,
+        eventId: event.eventId,
         name: event.name,
         location: event.location,
         startTime: event.startTime,
@@ -121,6 +122,7 @@ router.get('/event/:id/status', async (req, res) => {
     res.json({
       event: {
         _id: event._id,
+        eventId: event.eventId,
         name: event.name
       },
       zones: zoneData,
@@ -151,6 +153,36 @@ router.post('/event/:id/subscribe', async (req, res) => {
       eventId: event._id,
       eventName: event.name
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/public/event/:id/questions
+// @desc    Submit a crowd question to staff/admin feed
+// @access  Public
+router.post('/event/:id/questions', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event || !event.isPublic) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const { message, zoneId = null, from = 'crowd' } = req.body;
+    if (!message?.trim()) {
+      return res.status(400).json({ message: 'Question message is required' });
+    }
+
+    const payload = {
+      eventId: event._id,
+      zoneId,
+      question: message.trim(),
+      from,
+      timestamp: new Date()
+    };
+
+    req.emitRealtime?.(event._id.toString(), 'gathering_question', payload);
+    res.status(201).json(payload);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -55,16 +55,55 @@ export const adminAPI = {
   getEventDetails: (id) => api.get(`/admin/events/${id}`),
   updateEvent: (id, data) => api.put(`/admin/events/${id}`, data),
   deleteEvent: (id) => api.delete(`/admin/events/${id}`),
+  activateEmergency: (id, data) => api.post(`/admin/events/${id}/emergency/activate`, data),
+  deactivateEmergency: (id) => api.post(`/admin/events/${id}/emergency/deactivate`),
+  sendCommand: (id, data) => api.post(`/admin/events/${id}/commands`, data),
   getUsers: (params) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   getAlerts: (params) => api.get('/admin/alerts', { params }),
   resolveAlert: (id) => api.put(`/admin/alerts/${id}/resolve`)
 }
 
+// Staff APIs
+export const staffAPI = {
+  getEvents: () => api.get('/staff/events'),
+  reportIncident: (eventId, data) => api.post(`/staff/events/${eventId}/incidents`, data),
+  sendAnswer: (eventId, data) => api.post(`/staff/events/${eventId}/answers`, data)
+}
+
+// Seating APIs
+export const seatingAPI = {
+  getLayout: (eventId) => api.get(`/seating/${eventId}`),
+  saveLayout: (eventId, data) => api.put(`/seating/${eventId}`, data),
+  updateSeatStatus: (eventId, data) => api.patch(`/seating/${eventId}/seat-status`, data),
+  getHistory: (eventId) => api.get(`/seating/${eventId}/history`)
+}
+
+// Venue / Geofencing APIs
+export const venueAPI = {
+  getLayout: () => api.get('/venue/layout'),
+  checkGeofence: (data) => api.post('/venue/geofence/check', data),
+  getNearestRoute: (data) => api.post('/venue/nearest-route', data)
+}
+
+// Venue Plan APIs
+export const venuePlanAPI = {
+  getByEvent: (eventId) => api.get(`/venue-plan/${eventId}`),
+  saveFull: (eventId, data) => api.put(`/venue-plan/${eventId}`, data),
+  updateZone: (eventId, zoneId, data) => api.patch(`/venue-plan/${eventId}/zones/${zoneId}`, data)
+}
+
+// Operations Feed APIs
+export const operationsAPI = {
+  getFeed: (eventId) => api.get(`/operations/${eventId}`),
+  publish: (eventId, data) => api.post(`/operations/${eventId}`, data)
+}
+
 // Public APIs
 export const publicAPI = {
   lookupEvent: (accessCode) => api.post('/public/lookup', { accessCode }),
-  getEventStatus: (id) => api.get(`/public/event/${id}/status`)
+  getEventStatus: (id) => api.get(`/public/event/${id}/status`),
+  askQuestion: (id, data) => api.post(`/public/event/${id}/questions`, data)
 }
 
 export default api

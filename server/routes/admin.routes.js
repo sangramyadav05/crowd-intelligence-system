@@ -167,6 +167,11 @@ router.put('/events/:id', async (req, res) => {
 
     await event.save();
     await event.populate('organizer', 'name email');
+    req.emitRealtime?.(event._id.toString(), 'event_plan_update', {
+      eventId: event._id,
+      action: 'admin_updated',
+      event
+    });
 
     res.json(event);
   } catch (error) {
@@ -188,6 +193,10 @@ router.delete('/events/:id', async (req, res) => {
     // Clean up related data
     await CrowdData.deleteMany({ event: req.params.id });
     await Alert.deleteMany({ event: req.params.id });
+    req.emitRealtime?.(req.params.id, 'event_plan_update', {
+      eventId: req.params.id,
+      action: 'admin_deleted'
+    });
 
     res.json({ message: 'Event and related data deleted successfully' });
   } catch (error) {
@@ -306,6 +315,115 @@ router.put('/alerts/:id/resolve', async (req, res) => {
     await alert.save();
 
     res.json(alert);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/admin/events/:id/emergency/activate
+// @desc    Activate emergency mode for an event
+// @access  Admin
+router.post('/events/:id/emergency/activate', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const { level = 'critical', activePlan = 'Emergency evacuation' } = req.body;
+    event.emergencyState = {
+      isActive: true,
+      level,
+      activePlan,
+      activatedAt: new Date(),
+      activatedBy: req.user._id
+    };
+
+    await event.save();
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'emergency_alert', {
+      eventId: event.eventId || event._id,
+      emergencyState: event.emergencyState
+    });
+
+    res.json({
+      message: 'Emergency mode activated',
+      eventId: event._id,
+      emergencyState: event.emergencyState
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/admin/events/:id/emergency/deactivate
+// @desc    Deactivate emergency mode for an event
+// @access  Admin
+router.post('/events/:id/emergency/deactivate', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    event.emergencyState = {
+      isActive: false,
+      level: 'none',
+      activePlan: '',
+      activatedAt: null,
+      activatedBy: null
+    };
+
+    await event.save();
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'emergency_cleared', {
+      eventId: event.eventId || event._id
+    });
+
+    res.json({
+      message: 'Emergency mode deactivated',
+      eventId: event._id,
+      emergencyState: event.emergencyState
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   POST /api/admin/events/:id/commands
+// @desc    Send operational command/broadcast for an event
+// @access  Admin
+router.post('/events/:id/commands', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const { type = 'broadcast', message, zoneId = null } = req.body;
+    if (!message?.trim()) {
+      return res.status(400).json({ message: 'Command message is required' });
+    }
+
+    const command = {
+      type,
+      message: message.trim(),
+      zoneId,
+      issuedBy: req.user._id
+    };
+    event.commandLog.push(command);
+    await event.save();
+
+    const payload = {
+      eventId: event.eventId || event._id,
+      command: event.commandLog[event.commandLog.length - 1]
+    };
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'gathering_instruction', payload);
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'notifications', {
+      type: 'instruction',
+      eventId: event.eventId || event._id,
+      message: payload.command.message
+    });
+
+    res.status(201).json(payload);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

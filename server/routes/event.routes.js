@@ -44,20 +44,41 @@ router.post(
   ],
   async (req, res) => {
     try {
-      const { name, description, location, startTime, endTime, expectedCrowdSize, zones } = req.body;
-
-      const event = await Event.create({
+      const {
+        eventId,
         name,
         description,
         location,
+        venue,
         startTime,
         endTime,
         expectedCrowdSize,
+        expectedAttendance,
+        zones,
+        passcodes
+      } = req.body;
+
+      const event = await Event.create({
+        eventId,
+        name,
+        description,
+        location,
+        venue,
+        startTime,
+        endTime,
+        expectedCrowdSize,
+        expectedAttendance: expectedAttendance || expectedCrowdSize,
+        passcodes,
         zones: zones || [],
         organizer: req.user._id
       });
 
       await event.populate('organizer', 'name email');
+      req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
+        eventId: event.eventId || event._id,
+        action: 'created',
+        event
+      });
       res.status(201).json(event);
     } catch (error) {
       res.status(500).json({ message: error.message });
@@ -108,6 +129,11 @@ router.put('/:id', protect, async (req, res) => {
 
     await event.save();
     await event.populate('organizer', 'name email');
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
+      eventId: event.eventId || event._id,
+      action: 'updated',
+      event
+    });
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -128,6 +154,10 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
+    req.emitRealtime?.(event.eventId || req.params.id, 'event_plan_update', {
+      eventId: event.eventId || req.params.id,
+      action: 'deleted'
+    });
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -157,6 +187,11 @@ router.post('/:id/zones', protect, async (req, res) => {
     });
 
     await event.save();
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
+      eventId: event.eventId || event._id,
+      action: 'zone_added',
+      zone: event.zones[event.zones.length - 1]
+    });
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -187,6 +222,11 @@ router.put('/:id/zones/:zoneId', protect, async (req, res) => {
     });
 
     await event.save();
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
+      eventId: event.eventId || event._id,
+      action: 'zone_updated',
+      zoneId: req.params.zoneId
+    });
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -209,6 +249,11 @@ router.delete('/:id/zones/:zoneId', protect, async (req, res) => {
 
     event.zones.pull(req.params.zoneId);
     await event.save();
+    req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
+      eventId: event.eventId || event._id,
+      action: 'zone_deleted',
+      zoneId: req.params.zoneId
+    });
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -52,6 +52,12 @@ router.get('/predict/:eventId', protect, async (req, res) => {
       predictions,
       generatedAt: new Date()
     });
+
+    req.emitRealtime?.(event._id.toString(), 'prediction_update', {
+      eventId: event._id,
+      predictions,
+      generatedAt: new Date()
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -183,6 +189,16 @@ router.post('/run-analysis/:eventId', protect, async (req, res) => {
         recommendations
       },
       runAt: new Date()
+    });
+
+    req.emitRealtime?.(event._id.toString(), 'prediction_update', {
+      eventId: event._id,
+      predictions: predictions.filter(Boolean),
+      runAt: new Date()
+    });
+    req.emitRealtime?.(event._id.toString(), 'event_plan_update', {
+      eventId: event._id,
+      recommendations
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,21 +1,52 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Users } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [searchParams] = useSearchParams()
+  const [formData, setFormData] = useState({
+    role: 'admin',
+    email: '',
+    password: '',
+    eventId: '',
+    accessCode: ''
+  })
   const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
+  useEffect(() => {
+    const role = searchParams.get('role')
+    if (role && ['admin', 'staff', 'crowd', 'observer'].includes(role)) {
+      setFormData((prev) => ({ ...prev, role }))
+    }
+  }, [searchParams])
+
+  const roleOptions = [
+    { id: 'admin', label: 'Admin' },
+    { id: 'staff', label: 'Staff' },
+    { id: 'crowd', label: 'Crowd' },
+    { id: 'observer', label: 'Observer' }
+  ]
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     clearError()
     try {
-      await login(formData.email, formData.password)
-      navigate('/dashboard')
+      const payload = {
+        role: formData.role,
+        email: formData.email,
+        password: formData.password,
+        eventId: formData.eventId?.trim(),
+        accessCode: formData.accessCode?.trim()
+      }
+      const data = await login(payload)
+      if (data.role === 'admin') navigate('/admin')
+      else if (data.role === 'staff') navigate('/staff')
+      else if (data.role === 'crowd') navigate('/crowd')
+      else if (data.role === 'observer') navigate('/observer')
+      else navigate('/dashboard')
     } catch (err) {
       // Error handled by store
     }
@@ -35,7 +66,7 @@ export default function Login() {
               <Users className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-600 mt-2">Sign in to manage your events</p>
+            <p className="text-gray-600 mt-2">Role-based access for operations and crowd view</p>
           </div>
 
           {/* Error Message */}
@@ -52,6 +83,67 @@ export default function Login() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <div className="grid grid-cols-2 gap-2">
+                {roleOptions.map((role) => (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, role: role.id })}
+                    className={`px-3 py-2 rounded-lg border text-sm font-medium ${
+                      formData.role === role.id
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {role.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(formData.role === 'admin' || formData.role === 'staff') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Global Passcode (optional)</label>
+                <input
+                  type="text"
+                  value={formData.accessCode}
+                  onChange={(e) => setFormData({ ...formData, accessCode: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                  placeholder="Enter global role passcode"
+                />
+              </div>
+            )}
+
+            {(formData.role === 'crowd' || formData.role === 'observer') && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event ID</label>
+                  <input
+                    type="text"
+                    value={formData.eventId}
+                    onChange={(e) => setFormData({ ...formData, eventId: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                    placeholder="EVT-XXXXXX"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Passcode</label>
+                  <input
+                    type="text"
+                    value={formData.accessCode}
+                    onChange={(e) => setFormData({ ...formData, accessCode: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                    placeholder="Crowd/Observer passcode"
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            {(formData.role === 'admin' || formData.role === 'staff' || formData.role === 'user') && (
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -61,11 +153,12 @@ export default function Login() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                   placeholder="you@example.com"
-                  required
                 />
               </div>
             </div>
+            )}
 
+            {(formData.role === 'admin' || formData.role === 'staff' || formData.role === 'user') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">
@@ -76,7 +169,6 @@ export default function Login() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
                   placeholder="Enter your password"
-                  required
                 />
                 <button
                   type="button"
@@ -87,6 +179,7 @@ export default function Login() {
                 </button>
               </div>
             </div>
+            )}
 
             <button
               type="submit"

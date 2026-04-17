@@ -89,12 +89,20 @@ router.post('/update/:eventId', protect, async (req, res) => {
 
     await event.save();
 
-    // Emit real-time update via Socket.io
-    req.io.to(`event-${eventId}`).emit('crowd-update', {
+    // Emit realtime updates for both legacy and namespace contracts.
+    const densityPayload = {
       zoneId,
       count: zone.currentCount,
       occupancy: Math.round(occupancy * 100),
       timestamp: new Date()
+    };
+    req.io.to(`event-${eventId}`).emit('crowd-update', densityPayload);
+    const emitKey = event.eventId || eventId;
+    req.emitRealtime?.(emitKey, 'density_update', densityPayload);
+    req.emitRealtime?.(emitKey, 'notifications', {
+      type: 'density',
+      severity: occupancy > 0.9 ? 'emergency' : occupancy > 0.8 ? 'warning' : 'info',
+      ...densityPayload
     });
 
     res.json({
@@ -175,12 +183,14 @@ router.post('/simulate/:eventId', protect, async (req, res) => {
       });
 
       // Emit update
-      req.io.to(`event-${event._id}`).emit('crowd-update', {
+      const densityPayload = {
         zoneId: zone._id.toString(),
         count: newCount,
         occupancy: Math.round((newCount / zone.capacity) * 100),
         timestamp: new Date()
-      });
+      };
+      req.io.to(`event-${event._id}`).emit('crowd-update', densityPayload);
+      req.emitRealtime?.(event._id.toString(), 'density_update', densityPayload);
     }
 
     await event.save();
@@ -229,6 +239,10 @@ router.post('/reset/:eventId', protect, async (req, res) => {
 
     // Broadcast reset
     req.io.to(`event-${event._id}`).emit('crowd-reset', {
+      timestamp: new Date()
+    });
+    req.emitRealtime?.(event._id.toString(), 'density_update', {
+      reset: true,
       timestamp: new Date()
     });
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Users, Calendar, AlertTriangle, Activity, TrendingUp, Shield, Search, Filter, MoreVertical } from 'lucide-react'
-import { adminAPI } from '../lib/api'
+import { Users, Calendar, AlertTriangle, Activity, TrendingUp, Shield, Search, Filter, MoreVertical, Send } from 'lucide-react'
+import { adminAPI, operationsAPI } from '../lib/api'
+import { adminSocket, joinEventRoom } from '../lib/socket'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -13,10 +14,39 @@ export default function AdminDashboard() {
   const [recentEvents, setRecentEvents] = useState([])
   const [criticalAlerts, setCriticalAlerts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedEventId, setSelectedEventId] = useState('')
+  const [commandText, setCommandText] = useState('')
+  const [operationType, setOperationType] = useState('event')
+  const [socketConnected, setSocketConnected] = useState(false)
+  const [liveOpsFeed, setLiveOpsFeed] = useState([])
 
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+  useEffect(() => {
+    adminSocket.connect()
+    const onConnect = () => setSocketConnected(true)
+    const onDisconnect = () => setSocketConnected(false)
+    const onOperationsUpdate = (payload) => {
+      setLiveOpsFeed((prev) => [payload, ...prev].slice(0, 8))
+    }
+    adminSocket.on('connect', onConnect)
+    adminSocket.on('disconnect', onDisconnect)
+    adminSocket.on('operations_update', onOperationsUpdate)
+
+    return () => {
+      adminSocket.off('connect', onConnect)
+      adminSocket.off('disconnect', onDisconnect)
+      adminSocket.off('operations_update', onOperationsUpdate)
+      adminSocket.disconnect()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedEventId) return
+    joinEventRoom(adminSocket, selectedEventId)
+  }, [selectedEventId])
 
   const fetchDashboardData = async () => {
     try {
@@ -24,10 +54,45 @@ export default function AdminDashboard() {
       setStats(data.stats)
       setRecentEvents(data.recentEvents)
       setCriticalAlerts(data.criticalAlerts)
+      if (data.recentEvents?.[0]) setSelectedEventId(data.recentEvents[0].eventId || data.recentEvents[0]._id)
     } catch (error) {
       console.error('Error fetching admin data:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const sendCommand = async (e) => {
+    e.preventDefault()
+    if (!selectedEventId || !commandText.trim()) return
+    try {
+      await adminAPI.sendCommand(selectedEventId, { message: commandText.trim(), type: 'broadcast' })
+      await operationsAPI.publish(selectedEventId, {
+        type: operationType,
+        message: commandText.trim(),
+        priority: operationType === 'gathering' ? 'high' : 'normal'
+      })
+      setCommandText('')
+    } catch (error) {
+      console.error('Unable to send command', error)
+    }
+  }
+
+  const activateEmergency = async () => {
+    if (!selectedEventId) return
+    try {
+      await adminAPI.activateEmergency(selectedEventId, { level: 'critical', activePlan: 'Emergency protocol' })
+    } catch (error) {
+      console.error('Unable to activate emergency', error)
+    }
+  }
+
+  const clearEmergency = async () => {
+    if (!selectedEventId) return
+    try {
+      await adminAPI.deactivateEmergency(selectedEventId)
+    } catch (error) {
+      console.error('Unable to clear emergency', error)
     }
   }
 
@@ -102,6 +167,60 @@ export default function AdminDashboard() {
       </div>
 
       {/* Critical Alerts */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Live Command Center</h2>
+          <span className={`text-xs font-medium px-2 py-1 rounded-full ${socketConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {socketConnected ? 'Socket Online' : 'Socket Offline'}
+          </span>
+        </div>
+        <div className="grid md:grid-cols-4 gap-3">
+          <select
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg"
+          >
+            {recentEvents.length === 0 && <option value="">No events available</option>}
+            {recentEvents.map((event) => (
+              <option key={event._id} value={event.eventId || event._id}>{event.name}</option>
+            ))}
+          </select>
+          <form onSubmit={sendCommand} className="md:col-span-2 flex gap-2">
+            <select
+              value={operationType}
+              onChange={(e) => setOperationType(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg"
+            >
+              <option value="event">event</option>
+              <option value="gathering">gathering</option>
+              <option value="crowd_management">crowd_management</option>
+            </select>
+            <input
+              value={commandText}
+              onChange={(e) => setCommandText(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg"
+              placeholder="Broadcast instruction..."
+            />
+            <button type="submit" className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+          <div className="flex gap-2">
+            <button onClick={activateEmergency} className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">Activate</button>
+            <button onClick={clearEmergency} className="px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm">Clear</button>
+          </div>
+        </div>
+        {liveOpsFeed.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {liveOpsFeed.map((item) => (
+              <div key={item._id} className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg">
+                <span className="font-semibold text-slate-700">{item.type}</span>: {item.message}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {criticalAlerts.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
           <div className="flex items-center space-x-2 mb-4">

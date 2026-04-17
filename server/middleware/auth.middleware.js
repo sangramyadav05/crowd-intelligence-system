@@ -34,6 +34,14 @@ export const adminOnly = async (req, res, next) => {
   }
 };
 
+export const staffOrAdmin = async (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'staff')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as staff/admin' });
+  }
+};
+
 export const optionalAuth = async (req, res, next) => {
   try {
     let token;

@@ -11,6 +11,8 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
 
   const isAdmin = user?.role === 'admin'
+  const isStaff = user?.role === 'staff'
+  const isCrowd = user?.role === 'crowd' || user?.role === 'observer'
 
   const handleLogout = () => {
     logout()
@@ -28,11 +30,20 @@ export default function Navbar() {
           { name: 'Admin Panel', href: '/admin', icon: Shield },
           { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         ]
+      : isStaff
+      ? [
+          { name: 'Staff Portal', href: '/staff', icon: Shield },
+          { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        ]
+      : isCrowd
+      ? [
+          { name: user?.role === 'observer' ? 'Observer View' : 'Crowd View', href: user?.role === 'observer' ? '/observer' : '/crowd', icon: Eye },
+        ]
       : [
           { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         ]
     : [
-        { name: 'Login', href: '/login', icon: UserCircle },
+        { name: 'Access Portal', href: '/access', icon: UserCircle },
         { name: 'Register', href: '/register', icon: Users },
       ]
 

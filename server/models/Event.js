@@ -27,6 +27,12 @@ const zoneSchema = new mongoose.Schema({
 });
 
 const eventSchema = new mongoose.Schema({
+  eventId: {
+    type: String,
+    unique: true,
+    uppercase: true,
+    trim: true
+  },
   name: {
     type: String,
     required: [true, 'Event name is required'],
@@ -55,6 +61,15 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1
+  },
+  expectedAttendance: {
+    type: Number,
+    min: 1
+  },
+  venue: {
+    name: { type: String, trim: true, default: '' },
+    city: { type: String, trim: true, default: '' },
+    address: { type: String, trim: true, default: '' }
   },
   accessCode: {
     type: String,
@@ -85,6 +100,24 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  emergencyState: {
+    isActive: { type: Boolean, default: false },
+    level: { type: String, enum: ['none', 'warning', 'critical'], default: 'none' },
+    activePlan: { type: String, trim: true, default: '' },
+    activatedAt: { type: Date },
+    activatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  },
+  commandLog: [{
+    type: { type: String, enum: ['broadcast', 'zone-directive'], required: true },
+    message: { type: String, required: true, trim: true },
+    zoneId: { type: String, default: null },
+    issuedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  passcodes: {
+    crowd: { type: String, default: '' },
+    observer: { type: String, default: '' }
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -95,10 +128,9 @@ const eventSchema = new mongoose.Schema({
   }
 });
 
-// Generate unique access code before saving
-eventSchema.pre('save', async function(next) {
-  if (!this.isModified('accessCode') || this.accessCode) return next();
-  
+// Generate access code before validation so required check passes.
+eventSchema.pre('validate', async function(next) {
+  // New documents may report accessCode as unmodified; generate when missing.
   const generateCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -108,7 +140,11 @@ eventSchema.pre('save', async function(next) {
     return code;
   };
   
-  this.accessCode = generateCode();
+  if (!this.accessCode) this.accessCode = generateCode();
+  if (!this.eventId) this.eventId = `EVT-${generateCode()}`;
+  if (!this.passcodes?.crowd) this.passcodes.crowd = generateCode();
+  if (!this.passcodes?.observer) this.passcodes.observer = generateCode();
+  if (!this.expectedAttendance) this.expectedAttendance = this.expectedCrowdSize;
   next();
 });
 

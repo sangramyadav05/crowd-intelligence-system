@@ -1,0 +1,50 @@
+{
+  "venueName": "CrowdGuard Arena",
+  "zones": [
+    {
+      "zoneId": "main-stage",
+      "name": "Main Stage",
+      "capacity": 2000,
+      "boundary": [
+        { "x": 10, "y": 10 },
+        { "x": 90, "y": 10 },
+        { "x": 90, "y": 40 },
+        { "x": 10, "y": 40 }
+      ]
+    },
+    {
+      "zoneId": "food-court",
+      "name": "Food Court",
+      "capacity": 800,
+      "boundary": [
+        { "x": 10, "y": 50 },
+        { "x": 50, "y": 50 },
+        { "x": 50, "y": 90 },
+        { "x": 10, "y": 90 }
+      ]
+    },
+    {
+      "zoneId": "entry-gate",
+      "name": "Entry Gate",
+      "capacity": 500,
+      "boundary": [
+        { "x": 60, "y": 50 },
+        { "x": 90, "y": 50 },
+        { "x": 90, "y": 90 },
+        { "x": 60, "y": 90 }
+      ]
+    }
+  ],
+  "entries": [
+    { "id": "north-entry", "name": "North Entry", "x": 50, "y": 5 },
+    { "id": "west-entry", "name": "West Entry", "x": 5, "y": 50 }
+  ],
+  "exits": [
+    { "id": "south-exit", "name": "South Exit", "x": 50, "y": 95 },
+    { "id": "east-exit", "name": "East Exit", "x": 95, "y": 50 }
+  ],
+  "alertThresholds": {
+    "warningOccupancyPercent": 80,
+    "criticalOccupancyPercent": 95
+  }
+}

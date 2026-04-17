@@ -233,10 +233,10 @@ export default function LandingPage() {
                 Create Free Account
               </Link>
               <Link
-                to="/login"
+                to="/access"
                 className="px-8 py-4 bg-primary-800 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all"
               >
-                Sign In
+                Access Portal
               </Link>
             </div>
           </motion.div>
@@ -266,7 +266,7 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white font-semibold mb-4">Account</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/login" className="hover:text-white transition-colors">Login</Link></li>
+                <li><Link to="/access" className="hover:text-white transition-colors">Access Portal</Link></li>
                 <li><Link to="/register" className="hover:text-white transition-colors">Register</Link></li>
                 <li><Link to="/admin-login" className="hover:text-white transition-colors">Admin</Link></li>
               </ul>

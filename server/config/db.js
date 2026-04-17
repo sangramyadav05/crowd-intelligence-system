@@ -17,6 +17,7 @@ const connectDB = async () => {
     const conn = await mongoose.connect(MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     demoStorage.isDemoMode = false;
+    return true;
   } catch (error) {
     console.warn('\n⚠️  MongoDB Connection Failed:', error.message);
     console.log('🔄 Starting in DEMO MODE - Using in-memory storage\n');
@@ -30,6 +31,7 @@ const connectDB = async () => {
     if (!mongoose.connection.readyState) {
       mongoose.connection.readyState = 1; // Fake connected state
     }
+    return false;
   }
 };
 
