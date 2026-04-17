@@ -11,6 +11,13 @@ const flowArrowSchema = new mongoose.Schema({
   message: { type: String, default: '' }
 }, { _id: false });
 
+const blueprintSchema = new mongoose.Schema({
+  imageData: { type: String, default: '' },
+  fileName: { type: String, default: '' },
+  mimeType: { type: String, default: '' },
+  uploadedAt: { type: Date, default: Date.now }
+}, { _id: false });
+
 const zoneSchema = new mongoose.Schema({
   zoneId: { type: String, required: true },
   name: { type: String, required: true },
@@ -34,6 +41,7 @@ const venuePlanSchema = new mongoose.Schema({
   },
   version: { type: Number, default: 1 },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  blueprint: { type: blueprintSchema, default: null },
   zones: { type: [zoneSchema], default: [] },
   flowArrows: { type: [flowArrowSchema], default: [] }
 }, {

@@ -16,6 +16,8 @@ import seatingRoutes from './routes/seating.routes.js';
 import venueRoutes from './routes/venue.routes.js';
 import venuePlanRoutes from './routes/venue-plan.routes.js';
 import operationsRoutes from './routes/operations.routes.js';
+import surveillanceRoutes from './routes/surveillance.routes.js';
+import getZonesRoutes from './routes/get_zones.routes.js';
 import { VenuePlan } from './models/index.js';
 import { ensureDefaultSetup } from './seed/defaultSetup.js';
 import { isPortAvailable } from './utils/portCheck.js';
@@ -25,13 +27,11 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = new Set([
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:5176'
-]);
+const allowedOrigins = new Set([process.env.CLIENT_URL || 'http://localhost:5173']);
+for (let port = 5173; port <= 5185; port += 1) {
+  allowedOrigins.add(`http://localhost:${port}`);
+  allowedOrigins.add(`http://127.0.0.1:${port}`);
+}
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -58,7 +58,7 @@ if (connectedToDb) {
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '12mb' }));
 
 // Make io accessible to routes
 app.use((req, res, next) => {
@@ -85,6 +85,8 @@ app.use('/api/seating', seatingRoutes);
 app.use('/api/venue', venueRoutes);
 app.use('/api/venue-plan', venuePlanRoutes);
 app.use('/api/operations', operationsRoutes);
+app.use('/api/surveillance', surveillanceRoutes);
+app.use('/api/get_zones', getZonesRoutes);
 
 const geoState = {
   participantsByEvent: new Map(),

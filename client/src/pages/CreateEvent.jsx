@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Plus, Calendar, MapPin, Users, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Plus, Calendar, MapPin, Users, CheckCircle, Image as ImageIcon } from 'lucide-react'
 import { eventAPI } from '../lib/api'
 
 export default function CreateEvent() {
@@ -15,9 +15,30 @@ export default function CreateEvent() {
     startTime: '',
     endTime: '',
     expectedCrowdSize: '',
+    blueprint: null,
     zones: []
   })
   const [newZone, setNewZone] = useState({ name: '', capacity: '' })
+
+  const handleBlueprintUpload = (file) => {
+    if (!file) {
+      setFormData((prev) => ({ ...prev, blueprint: null }))
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        blueprint: {
+          imageData: reader.result,
+          fileName: file.name,
+          mimeType: file.type
+        }
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -51,7 +72,7 @@ export default function CreateEvent() {
 
   const steps = [
     { number: 1, title: 'Event Details', description: 'Basic information' },
-    { number: 2, title: 'Location & Time', description: 'When and where' },
+    { number: 2, title: 'Location & Time', description: 'When, where, and blueprint' },
     { number: 3, title: 'Zones', description: 'Define areas' },
     { number: 4, title: 'Review', description: 'Confirm details' }
   ]
@@ -185,6 +206,40 @@ export default function CreateEvent() {
                   </div>
                 </div>
               </div>
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-white p-3 shadow-sm border border-gray-200">
+                    <ImageIcon className="w-5 h-5 text-primary-600" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Venue Blueprint</label>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Upload a venue image to use as the base for the event heatmap in admin and public view.
+                    </p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleBlueprintUpload(e.target.files?.[0])}
+                      className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-primary-600 file:px-4 file:py-2 file:font-medium file:text-white hover:file:bg-primary-700"
+                    />
+                    {formData.blueprint && (
+                      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                          <img
+                            src={formData.blueprint.imageData}
+                            alt={formData.blueprint.fileName}
+                            className="h-24 w-full rounded-xl object-cover sm:w-40"
+                          />
+                          <div>
+                            <p className="font-medium text-gray-900">{formData.blueprint.fileName}</p>
+                            <p className="text-sm text-gray-500">Ready to use as the live heatmap background.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -272,6 +327,12 @@ export default function CreateEvent() {
                     </span>
                   ))}
                 </div>
+              </div>
+              <div>
+                <span className="text-gray-500 text-sm">Blueprint</span>
+                <p className="font-medium text-gray-900">
+                  {formData.blueprint?.fileName || 'No blueprint uploaded'}
+                </p>
               </div>
             </div>
           </motion.div>

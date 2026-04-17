@@ -24,20 +24,8 @@ router.post('/lookup', async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Check if event is active
     const now = new Date();
-    if (now < event.startTime || now > event.endTime) {
-      return res.json({
-        event: {
-          _id: event._id,
-          name: event.name,
-          status: event.getStatus(),
-          startTime: event.startTime,
-          endTime: event.endTime
-        },
-        message: 'Event is not currently active'
-      });
-    }
+    const isLive = now >= event.startTime && now <= event.endTime;
 
     // Get current crowd data
     const zoneData = event.zones.map(zone => ({
@@ -52,20 +40,25 @@ router.post('/lookup', async (req, res) => {
     }));
 
     // Get active alerts
-    const activeAlerts = await Alert.find({
-      event: event._id,
-      isResolved: false,
-      severity: { $in: ['warning', 'critical', 'emergency'] }
-    }).sort({ createdAt: -1 }).limit(5);
+    const activeAlerts = isLive
+      ? await Alert.find({
+          event: event._id,
+          isResolved: false,
+          severity: { $in: ['warning', 'critical', 'emergency'] }
+        }).sort({ createdAt: -1 }).limit(5)
+      : [];
 
     // Get AI recommendations for public safety
-    const recommendations = await aiService.generateRecommendations(event._id);
+    const recommendations = isLive
+      ? await aiService.generateRecommendations(event._id)
+      : [];
 
     res.json({
       event: {
         _id: event._id,
         eventId: event.eventId,
         name: event.name,
+        status: event.getStatus(),
         location: event.location,
         startTime: event.startTime,
         endTime: event.endTime,
@@ -80,7 +73,9 @@ router.post('/lookup', async (req, res) => {
         recommendedAction: alert.recommendedAction
       })),
       recommendations: recommendations.filter(r => r.type !== 'evacuation_needed'),
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      isLive,
+      message: isLive ? '' : 'Event is not currently active. Live crowd counts will update once it starts.'
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Users, MapPin, Calendar, Activity, Play, RotateCcw, Plus, AlertTriangle, Brain, TrendingUp, Armchair, Navigation, Save, Map } from 'lucide-react'
-import { eventAPI, crowdAPI, seatingAPI, venueAPI, venuePlanAPI } from '../lib/api'
+import { ArrowLeft, Users, MapPin, Calendar, Activity, Play, RotateCcw, Plus, AlertTriangle, Brain, TrendingUp, Armchair, Navigation, Save, Map, Image as ImageIcon } from 'lucide-react'
+import { eventAPI, crowdAPI, seatingAPI, surveillanceAPI, venueAPI, venuePlanAPI } from '../lib/api'
 import { adminSocket, joinEventRoom } from '../lib/socket'
+import BlueprintHeatmap from '../components/BlueprintHeatmap'
 
 export default function EventDetails() {
   const { id } = useParams()
@@ -25,10 +26,43 @@ export default function EventDetails() {
     emergencyExitOnly: false
   })
   const [planSaveStatus, setPlanSaveStatus] = useState('')
+  const [surveillanceZones, setSurveillanceZones] = useState([])
+  const [isSurveillanceLoading, setIsSurveillanceLoading] = useState(false)
+  const [surveillanceError, setSurveillanceError] = useState('')
+  const [lastSurveillanceRefresh, setLastSurveillanceRefresh] = useState(null)
+  const [selectedHeatmapZoneId, setSelectedHeatmapZoneId] = useState('')
+  const [isBlueprintUploading, setIsBlueprintUploading] = useState(false)
 
   useEffect(() => {
+    setSurveillanceZones([])
+    setSurveillanceError('')
+    setLastSurveillanceRefresh(null)
     fetchEventData()
   }, [id])
+
+  useEffect(() => {
+    if (activeTab !== 'surveillance' || !id) return undefined
+
+    fetchSurveillanceData()
+    const intervalId = window.setInterval(() => {
+      fetchSurveillanceData({ silent: true })
+    }, 3000)
+
+    return () => window.clearInterval(intervalId)
+  }, [activeTab, id])
+
+  useEffect(() => {
+    if (!venuePlan?.zones?.length) {
+      setSelectedHeatmapZoneId('')
+      return
+    }
+
+    setSelectedHeatmapZoneId((current) => (
+      current && venuePlan.zones.some((zone) => zone.zoneId === current)
+        ? current
+        : venuePlan.zones[0].zoneId
+    ))
+  }, [venuePlan])
 
   useEffect(() => {
     if (!id) return undefined
@@ -108,10 +142,28 @@ export default function EventDetails() {
     }
   }
 
+  const fetchSurveillanceData = async ({ silent = false } = {}) => {
+    try {
+      if (!silent) setIsSurveillanceLoading(true)
+      setSurveillanceError('')
+      const { data } = await surveillanceAPI.getZones(id)
+      setSurveillanceZones(data)
+      setLastSurveillanceRefresh(new Date())
+    } catch (error) {
+      console.error('Error fetching surveillance data:', error)
+      setSurveillanceError(error?.response?.data?.message || 'Unable to load surveillance data right now.')
+    } finally {
+      if (!silent) setIsSurveillanceLoading(false)
+    }
+  }
+
   const runSimulation = async () => {
     try {
       await crowdAPI.simulate(id)
-      fetchEventData()
+      await fetchEventData()
+      if (activeTab === 'surveillance') {
+        await fetchSurveillanceData()
+      }
     } catch (error) {
       console.error('Simulation error:', error)
     }
@@ -120,7 +172,10 @@ export default function EventDetails() {
   const resetCrowd = async () => {
     try {
       await crowdAPI.reset(id)
-      fetchEventData()
+      await fetchEventData()
+      if (activeTab === 'surveillance') {
+        await fetchSurveillanceData()
+      }
     } catch (error) {
       console.error('Reset error:', error)
     }
@@ -217,6 +272,39 @@ export default function EventDetails() {
     }
   }
 
+  const handleBlueprintUpload = async (file) => {
+    if (!file || !event?.eventId || !venuePlan) return
+
+    try {
+      setIsBlueprintUploading(true)
+      setPlanSaveStatus('')
+
+      const blueprint = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve({
+          imageData: reader.result,
+          fileName: file.name,
+          mimeType: file.type
+        })
+        reader.onerror = () => reject(new Error('Unable to read blueprint file.'))
+        reader.readAsDataURL(file)
+      })
+
+      const { data } = await venuePlanAPI.saveFull(event.eventId, {
+        blueprint,
+        zones: venuePlan.zones || [],
+        flowArrows: venuePlan.flowArrows || []
+      })
+
+      setVenuePlan(data)
+      setPlanSaveStatus('Blueprint uploaded.')
+    } catch (error) {
+      setPlanSaveStatus(error?.response?.data?.message || error.message || 'Blueprint upload failed.')
+    } finally {
+      setIsBlueprintUploading(false)
+    }
+  }
+
   const getStatusColor = (occupancy) => {
     if (occupancy > 90) return 'bg-red-500'
     if (occupancy > 70) return 'bg-amber-500'
@@ -229,6 +317,105 @@ export default function EventDetails() {
     if (status === 'redirect') return 'bg-amber-500'
     return 'bg-green-500'
   }
+
+  const getZoneStatus = (capacity, currentCount) => {
+    if (currentCount > capacity) {
+      return {
+        key: 'overcrowded',
+        label: 'Avoid',
+        emoji: '🔴',
+        border: 'border-l-red-500',
+        badge: 'bg-red-100 text-red-700'
+      }
+    }
+
+    if (currentCount > capacity * 0.7) {
+      return {
+        key: 'busy',
+        label: 'Busy',
+        emoji: '🟡',
+        border: 'border-l-orange-500',
+        badge: 'bg-orange-100 text-orange-700'
+      }
+    }
+
+    return {
+      key: 'safe',
+      label: 'Free',
+      emoji: '🟢',
+      border: 'border-l-green-500',
+      badge: 'bg-green-100 text-green-700'
+    }
+  }
+
+  const surveillanceCards = surveillanceZones.map(([zoneName, capacity, currentCount]) => {
+    const status = getZoneStatus(capacity, currentCount)
+    const displayLabel = status.key === 'overcrowded'
+      ? '🔴 Avoid'
+      : status.key === 'busy'
+        ? '🟡 Busy'
+        : '🟢 Free'
+
+    return { zoneName, capacity, currentCount, status, displayLabel }
+  })
+
+  const cleanSurveillanceCards = surveillanceCards.map((zone) => ({
+    ...zone,
+    displayLabel: zone.status.key === 'overcrowded'
+      ? 'Avoid'
+      : zone.status.key === 'busy'
+        ? 'Busy'
+        : 'Free'
+  }))
+
+  const surveillanceSummary = cleanSurveillanceCards.reduce((summary, zone) => {
+    if (zone.status.key === 'overcrowded') summary.overcrowded += 1
+    else if (zone.status.key === 'busy') summary.busy += 1
+    else summary.safe += 1
+    return summary
+  }, { safe: 0, busy: 0, overcrowded: 0 })
+
+  const heatmapZones = (venuePlan?.zones || []).map((planZone) => {
+    const eventZone = event?.zones?.find((zone) => String(zone._id) === planZone.zoneId)
+      || event?.zones?.find((zone) => zone.name === planZone.name)
+    const liveZone = cleanSurveillanceCards.find((zone) => zone.zoneName === planZone.name)
+    const currentCount = liveZone?.currentCount ?? eventZone?.currentCount ?? 0
+    const capacity = liveZone?.capacity ?? eventZone?.capacity ?? planZone.maxCapacity ?? 0
+    const occupancy = capacity > 0 ? Math.round((currentCount / capacity) * 100) : 0
+    const status = getZoneStatus(Math.max(capacity, 1), currentCount)
+
+    return {
+      id: planZone.zoneId,
+      name: planZone.name,
+      polygon: planZone.polygon || [],
+      capacity,
+      currentCount,
+      occupancy,
+      statusKey: status.key,
+      statusLabel: status.label,
+      intensity: occupancy,
+      emergencyExitOnly: !!planZone.emergencyExitOnly
+    }
+  })
+
+  const selectedHeatmapZone = heatmapZones.find((zone) => zone.id === selectedHeatmapZoneId) || heatmapZones[0] || null
+  const hasSavedBlueprint = Boolean(venuePlan?.blueprint?.imageData)
+  const blueprintStatus = isBlueprintUploading
+    ? {
+        label: 'Uploading blueprint',
+        tone: 'bg-indigo-50 text-indigo-700 border-indigo-200'
+      }
+    : hasSavedBlueprint
+      ? {
+          label: 'Blueprint saved to venue plan',
+          tone: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        }
+      : {
+          label: 'Blueprint not saved yet',
+          tone: 'bg-amber-50 text-amber-700 border-amber-200'
+        }
+
+  const surveillanceTabs = ['overview', 'surveillance', 'zones', 'predictions', 'alerts', 'seating', 'geofence', 'venue-plan']
 
   if (isLoading) {
     return (
@@ -327,7 +514,7 @@ export default function EventDetails() {
 
       {/* Tabs */}
       <div className="flex space-x-1 mb-6 border-b border-gray-200">
-        {['overview', 'zones', 'predictions', 'alerts', 'seating', 'geofence', 'venue-plan'].map((tab) => (
+        {surveillanceTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -420,6 +607,169 @@ export default function EventDetails() {
           </div>
         )}
 
+        {activeTab === 'surveillance' && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Surveillance Intelligence</h3>
+                <p className="text-sm text-gray-500">
+                  Blueprint-backed heatmap with live zone status for instant scanning.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fetchSurveillanceData}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Refresh Surveillance
+              </button>
+            </div>
+
+            {isSurveillanceLoading && (
+              <div className="py-10 flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
+              </div>
+            )}
+
+            {!isSurveillanceLoading && surveillanceError && (
+              <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700">
+                {surveillanceError}
+              </div>
+            )}
+
+            {!isSurveillanceLoading && !surveillanceError && (
+              <div className="rounded-[1.5rem] border border-slate-200 bg-[#f4f6f8] p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">Live Zone Status</h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Auto-refreshes every 3 seconds
+                      {lastSurveillanceRefresh ? ` | Updated ${lastSurveillanceRefresh.toLocaleTimeString()}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <div className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600">
+                      Zones: <span className="font-semibold text-slate-900">{cleanSurveillanceCards.length}</span>
+                    </div>
+                    <div className="px-3 py-2 rounded-xl bg-white border border-green-200 text-green-700">
+                      Safe: <span className="font-semibold">{surveillanceSummary.safe}</span>
+                    </div>
+                    <div className="px-3 py-2 rounded-xl bg-white border border-orange-200 text-orange-700">
+                      Busy: <span className="font-semibold">{surveillanceSummary.busy}</span>
+                    </div>
+                    <div className="px-3 py-2 rounded-xl bg-white border border-red-200 text-red-700">
+                      Overcrowded: <span className="font-semibold">{surveillanceSummary.overcrowded}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {cleanSurveillanceCards.length === 0 ? (
+                  <div className="rounded-2xl bg-white border border-slate-200 px-6 py-12 text-center text-gray-500">
+                    No zone data available for this event yet.
+                  </div>
+                ) : (
+                  <div className="grid xl:grid-cols-[1.45fr,0.95fr] gap-6 items-start">
+                    <BlueprintHeatmap
+                      blueprint={venuePlan?.blueprint}
+                      zones={heatmapZones}
+                      selectedZoneId={selectedHeatmapZone?.id}
+                      onSelectZone={setSelectedHeatmapZoneId}
+                      title="Venue Heatmap"
+                      subtitle={venuePlan?.blueprint?.fileName ? 'Blueprint-linked live crowd overlay' : 'Live crowd overlay with default zone layout'}
+                    />
+
+                    <div className="space-y-4">
+                      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Selected Zone</p>
+                            <h5 className="mt-2 text-2xl font-semibold text-slate-950">
+                              {selectedHeatmapZone?.name || 'No zone selected'}
+                            </h5>
+                          </div>
+                          {selectedHeatmapZone && (
+                            <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-medium ${
+                              selectedHeatmapZone.statusKey === 'overcrowded'
+                                ? 'border-red-200 bg-red-50 text-red-700'
+                                : selectedHeatmapZone.statusKey === 'busy'
+                                  ? 'border-orange-200 bg-orange-50 text-orange-700'
+                                  : 'border-green-200 bg-green-50 text-green-700'
+                            }`}>
+                              {selectedHeatmapZone.statusLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        {selectedHeatmapZone ? (
+                          <>
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                              <div className="rounded-2xl bg-slate-50 p-4">
+                                <div className="text-sm text-slate-500">Current Count</div>
+                                <div className="mt-2 text-3xl font-bold text-slate-950">{selectedHeatmapZone.currentCount}</div>
+                              </div>
+                              <div className="rounded-2xl bg-slate-50 p-4">
+                                <div className="text-sm text-slate-500">Occupancy</div>
+                                <div className="mt-2 text-3xl font-bold text-slate-950">{selectedHeatmapZone.occupancy}%</div>
+                              </div>
+                            </div>
+                            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                              Capacity: <span className="font-semibold text-slate-900">{selectedHeatmapZone.capacity}</span>
+                              {selectedHeatmapZone.emergencyExitOnly ? (
+                                <span className="ml-3 inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-700">
+                                  Emergency Exit Only
+                                </span>
+                              ) : null}
+                            </div>
+                          </>
+                        ) : (
+                          <p className="mt-4 text-sm text-slate-500">Select a zone to inspect its live crowd details.</p>
+                        )}
+                      </div>
+
+                      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between gap-3 mb-4">
+                          <div>
+                            <h5 className="text-lg font-semibold text-slate-950">Live Zone List</h5>
+                            <p className="text-sm text-slate-500">Instant scan of every zone in this event.</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {cleanSurveillanceCards.map((zone) => {
+                            const matchingZone = heatmapZones.find((item) => item.name === zone.zoneName)
+
+                            return (
+                              <button
+                                key={zone.zoneName}
+                                type="button"
+                                onClick={() => matchingZone && setSelectedHeatmapZoneId(matchingZone.id)}
+                                className={`w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:bg-white ${
+                                  matchingZone?.id === selectedHeatmapZone?.id ? 'ring-2 ring-primary-200 border-primary-300' : ''
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <div className="font-semibold text-slate-900">{zone.zoneName}</div>
+                                    <div className="mt-1 text-sm text-slate-500">
+                                      {zone.currentCount} / {zone.capacity} people
+                                    </div>
+                                  </div>
+                                  <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${zone.status.badge}`}>
+                                    {zone.displayLabel}
+                                  </span>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         {activeTab === 'zones' && (
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -702,109 +1052,165 @@ export default function EventDetails() {
 
         {activeTab === 'venue-plan' && (
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
                 <Map className="w-5 h-5" />
                 <span>Venue Plan Zones</span>
               </h3>
-              <span className="text-sm text-gray-500">Version {venuePlan?.version || 0}</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${blueprintStatus.tone}`}>
+                  {blueprintStatus.label}
+                </span>
+                <span className="text-sm text-gray-500">Version {venuePlan?.version || 0}</span>
+              </div>
             </div>
 
             {!venuePlan ? (
               <p className="text-sm text-gray-500">No venue plan loaded yet for this event.</p>
             ) : (
-              <div className="grid lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-1 border border-gray-200 rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-900">
-                    Zones
+              <div className="space-y-4">
+                <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-xl bg-white p-3 shadow-sm border border-gray-200">
+                        <ImageIcon className="w-5 h-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-semibold text-gray-900">Venue Blueprint</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Upload or replace the image used by the admin and public heatmaps for this event.
+                        </p>
+                        <p className="text-sm text-gray-700 mt-3">
+                          Current file: <span className="font-medium">{venuePlan.blueprint?.fileName || 'No blueprint saved yet'}</span>
+                        </p>
+                        <p className="text-sm mt-2">
+                          <span className={`inline-flex items-center rounded-full border px-3 py-1 font-medium ${blueprintStatus.tone}`}>
+                            {blueprintStatus.label}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-white ${
+                      isBlueprintUploading ? 'bg-indigo-300 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
+                    }`}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleBlueprintUpload(e.target.files?.[0])}
+                        disabled={isBlueprintUploading}
+                      />
+                      <span>{isBlueprintUploading ? 'Uploading...' : 'Upload Blueprint'}</span>
+                    </label>
                   </div>
-                  <div className="divide-y divide-gray-100">
-                    {venuePlan.zones.length === 0 && (
-                      <div className="px-4 py-4 text-sm text-gray-500">No zones in plan yet.</div>
-                    )}
-                    {venuePlan.zones.map((zone) => (
-                      <button
-                        key={zone.zoneId}
-                        type="button"
-                        onClick={() => selectPlanZone(zone.zoneId)}
-                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 ${
-                          selectedPlanZoneId === zone.zoneId ? 'bg-indigo-50' : ''
-                        }`}
-                      >
-                        <div className="font-medium text-gray-900">{zone.name}</div>
-                        <div className="text-xs text-gray-500">{zone.zoneId}</div>
-                        {zone.emergencyExitOnly && (
-                          <div className="text-xs mt-1 text-rose-700 font-semibold">Emergency Exit Only</div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+
+                  {venuePlan.blueprint?.imageData && (
+                    <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                      <img
+                        src={venuePlan.blueprint.imageData}
+                        alt={venuePlan.blueprint.fileName || 'Venue blueprint'}
+                        className="h-48 w-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className="lg:col-span-2 border border-gray-200 rounded-xl p-4">
-                  <form onSubmit={savePlanZone} className="space-y-4">
-                    <div className="flex items-center justify-between">
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-1 border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-900">
+                      Zones
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {venuePlan.zones.length === 0 && (
+                        <div className="px-4 py-4 text-sm text-gray-500">No zones in plan yet.</div>
+                      )}
+                      {venuePlan.zones.map((zone) => (
+                        <button
+                          key={zone.zoneId}
+                          type="button"
+                          onClick={() => selectPlanZone(zone.zoneId)}
+                          className={`w-full text-left px-4 py-3 hover:bg-gray-50 ${
+                            selectedPlanZoneId === zone.zoneId ? 'bg-indigo-50' : ''
+                          }`}
+                        >
+                          <div className="font-medium text-gray-900">{zone.name}</div>
+                          <div className="text-xs text-gray-500">{zone.zoneId}</div>
+                          {zone.emergencyExitOnly && (
+                            <div className="text-xs mt-1 text-rose-700 font-semibold">Emergency Exit Only</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-2 border border-gray-200 rounded-xl p-4">
+                    <form onSubmit={savePlanZone} className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-gray-500">Selected zone</div>
+                          <div className="font-semibold text-gray-900">{selectedPlanZoneId || '-'}</div>
+                        </div>
+                        <button
+                          type="submit"
+                          className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                          disabled={!selectedPlanZoneId}
+                        >
+                          <Save className="w-4 h-4" />
+                          <span>Save</span>
+                        </button>
+                      </div>
+
+                      {planSaveStatus && (
+                        <div className={`text-sm px-3 py-2 rounded-lg ${
+                          planSaveStatus === 'Saved.' || planSaveStatus === 'Blueprint uploaded.'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {planSaveStatus}
+                        </div>
+                      )}
+
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Exit width (meters)</label>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0.5"
+                            value={planEditor.exitWidthMeters}
+                            onChange={(e) => setPlanEditor((prev) => ({ ...prev, exitWidthMeters: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-3 mt-7">
+                          <input
+                            id="emergencyExitOnly"
+                            type="checkbox"
+                            checked={planEditor.emergencyExitOnly}
+                            onChange={(e) => setPlanEditor((prev) => ({ ...prev, emergencyExitOnly: e.target.checked }))}
+                            className="h-4 w-4"
+                          />
+                          <label htmlFor="emergencyExitOnly" className="text-sm font-medium text-gray-700">
+                            Emergency Exit Only (high priority)
+                          </label>
+                        </div>
+                      </div>
+
                       <div>
-                        <div className="text-sm text-gray-500">Selected zone</div>
-                        <div className="font-semibold text-gray-900">{selectedPlanZoneId || '—'}</div>
-                      </div>
-                      <button
-                        type="submit"
-                        className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                        disabled={!selectedPlanZoneId}
-                      >
-                        <Save className="w-4 h-4" />
-                        <span>Save</span>
-                      </button>
-                    </div>
-
-                    {planSaveStatus && (
-                      <div className={`text-sm px-3 py-2 rounded-lg ${
-                        planSaveStatus === 'Saved.' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                      }`}>
-                        {planSaveStatus}
-                      </div>
-                    )}
-
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Exit width (meters)</label>
-                        <input
-                          type="number"
-                          step="0.5"
-                          min="0.5"
-                          value={planEditor.exitWidthMeters}
-                          onChange={(e) => setPlanEditor((prev) => ({ ...prev, exitWidthMeters: e.target.value }))}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Polygon JSON (points)</label>
+                        <textarea
+                          value={planEditor.polygonJson}
+                          onChange={(e) => setPlanEditor((prev) => ({ ...prev, polygonJson: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-xs h-52"
+                          placeholder='[{"x":10,"y":10},{"x":90,"y":10},{"x":90,"y":40},{"x":10,"y":40}]'
                         />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Use coordinates in the same plane as GPS normalization (demo). Changes broadcast live.
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-3 mt-7">
-                        <input
-                          id="emergencyExitOnly"
-                          type="checkbox"
-                          checked={planEditor.emergencyExitOnly}
-                          onChange={(e) => setPlanEditor((prev) => ({ ...prev, emergencyExitOnly: e.target.checked }))}
-                          className="h-4 w-4"
-                        />
-                        <label htmlFor="emergencyExitOnly" className="text-sm font-medium text-gray-700">
-                          Emergency Exit Only (high priority)
-                        </label>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Polygon JSON (points)</label>
-                      <textarea
-                        value={planEditor.polygonJson}
-                        onChange={(e) => setPlanEditor((prev) => ({ ...prev, polygonJson: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-xs h-52"
-                        placeholder='[{"x":10,"y":10},{"x":90,"y":10},{"x":90,"y":40},{"x":10,"y":40}]'
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        Use coordinates in the same plane as GPS normalization (demo). Changes broadcast live.
-                      </p>
-                    </div>
-                  </form>
+                    </form>
+                  </div>
                 </div>
               </div>
             )}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Users, AlertTriangle, CheckCircle, MapPin, Clock, ArrowRight, RefreshCw, Navigation, MessageSquare } from 'lucide-react'
 import { publicAPI, venueAPI, venuePlanAPI } from '../lib/api'
 import { publicSocket, joinEventRoom } from '../lib/socket'
+import BlueprintHeatmap from '../components/BlueprintHeatmap'
 
 export default function PublicView() {
   const [accessCode, setAccessCode] = useState('')
@@ -16,6 +17,8 @@ export default function PublicView() {
   const [currentZone, setCurrentZone] = useState(null)
   const [safetyOverlay, setSafetyOverlay] = useState(null)
   const [flowArrows, setFlowArrows] = useState([])
+  const [venuePlan, setVenuePlan] = useState(null)
+  const [selectedHeatmapZoneId, setSelectedHeatmapZoneId] = useState('')
 
   const handleLookup = async (e) => {
     e.preventDefault()
@@ -32,9 +35,16 @@ export default function PublicView() {
         ...data,
         zones: normalizedZones
       })
-      if (data?.event?.eventId) {
-        const planRes = await venuePlanAPI.getByEvent(data.event.eventId)
+      const venuePlanKey = data?.event?.eventId || data?.event?._id
+      if (venuePlanKey) {
+        const planRes = await venuePlanAPI.getByEvent(venuePlanKey)
+        setVenuePlan(planRes.data || null)
+        setSelectedHeatmapZoneId(planRes.data?.zones?.[0]?.zoneId || '')
         setFlowArrows(planRes.data?.flowArrows || [])
+      } else {
+        setVenuePlan(null)
+        setSelectedHeatmapZoneId('')
+        setFlowArrows([])
       }
     } catch (err) {
       setError('Event not found. Please check your access code.')
@@ -63,6 +73,30 @@ export default function PublicView() {
     if (maxOccupancy > 60) return 'moderate'
     return 'safe'
   }, [eventData])
+
+  const heatmapZones = useMemo(() => (
+    (venuePlan?.zones || []).map((planZone) => {
+      const liveZone = eventData?.zones?.find((zone) => zone.zoneId === planZone.zoneId)
+        || eventData?.zones?.find((zone) => zone.name === planZone.name)
+      const currentCount = liveZone?.currentCount ?? 0
+      const capacity = liveZone?.capacity ?? planZone.maxCapacity ?? 0
+      const occupancy = liveZone?.occupancy ?? (capacity > 0 ? Math.round((currentCount / capacity) * 100) : 0)
+      const statusKey = occupancy > 100 ? 'overcrowded' : occupancy > 70 ? 'busy' : 'safe'
+
+      return {
+        id: planZone.zoneId,
+        name: planZone.name,
+        polygon: planZone.polygon || [],
+        capacity,
+        currentCount,
+        occupancy,
+        statusKey,
+        statusLabel: statusKey === 'overcrowded' ? 'Avoid' : statusKey === 'busy' ? 'Busy' : 'Free'
+      }
+    })
+  ), [eventData?.zones, venuePlan])
+
+  const selectedHeatmapZone = heatmapZones.find((zone) => zone.id === selectedHeatmapZoneId) || heatmapZones[0] || null
 
   useEffect(() => {
     if (!eventData?.event?._id) return undefined
@@ -148,6 +182,19 @@ export default function PublicView() {
       publicSocket.disconnect()
     }
   }, [eventData?.event?._id])
+
+  useEffect(() => {
+    if (!venuePlan?.zones?.length) {
+      setSelectedHeatmapZoneId('')
+      return
+    }
+
+    setSelectedHeatmapZoneId((current) => (
+      current && venuePlan.zones.some((zone) => zone.zoneId === current)
+        ? current
+        : venuePlan.zones[0].zoneId
+    ))
+  }, [venuePlan])
 
   useEffect(() => {
     if (!eventData?.event?.eventId || !navigator.geolocation || !publicSocket.connected) return undefined
@@ -266,7 +313,11 @@ export default function PublicView() {
             {/* Event Header */}
             <div className="max-w-4xl mx-auto">
               <button
-                onClick={() => setEventData(null)}
+                onClick={() => {
+                  setEventData(null)
+                  setVenuePlan(null)
+                  setSelectedHeatmapZoneId('')
+                }}
                 className="mb-4 text-gray-600 hover:text-gray-900 flex items-center space-x-1"
               >
                 <ArrowRight className="w-4 h-4 rotate-180" />
@@ -292,6 +343,11 @@ export default function PublicView() {
                     Code: {eventData.event?.accessCode}
                   </div>
                 </div>
+                {eventData.message && (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {eventData.message}
+                  </div>
+                )}
               </div>
 
               {/* Overall Status */}
@@ -343,33 +399,90 @@ export default function PublicView() {
 
               {/* Zone Status */}
               <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Zone Status</h2>
-                <div className="space-y-4">
-                  {eventData.zones?.map((zone) => (
-                    <div key={zone.zoneId} className="p-4 bg-gray-50 rounded-xl">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900">{zone.name}</h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          zone.status === 'safe' ? 'bg-green-100 text-green-800' :
-                          zone.status === 'busy' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {zone.status === 'safe' ? 'Safe' : zone.status === 'busy' ? 'Busy' : 'Avoid'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                        <span>{zone.currentCount} / {zone.capacity} people</span>
-                        <span>({zone.occupancy}% full)</span>
-                        <span>{getStatusText(zone.occupancy)}</span>
-                      </div>
-                      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${getStatusColor(zone.occupancy)}`}
-                          style={{ width: `${Math.min(100, zone.occupancy)}%` }}
-                        />
+                <div className="grid lg:grid-cols-[1.35fr,0.95fr] gap-6 items-start">
+                  <BlueprintHeatmap
+                    blueprint={venuePlan?.blueprint}
+                    zones={heatmapZones}
+                    selectedZoneId={selectedHeatmapZone?.id}
+                    onSelectZone={setSelectedHeatmapZoneId}
+                    title="Live Venue Heatmap"
+                    subtitle={venuePlan?.blueprint?.fileName ? 'Read-only blueprint view for this event' : 'Read-only live zone layout for this event'}
+                  />
+
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                      <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Selected Area</p>
+                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                        {selectedHeatmapZone?.name || 'No zone selected'}
+                      </h3>
+                      {selectedHeatmapZone ? (
+                        <>
+                          <div className="mt-4 flex items-center gap-2">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${
+                              selectedHeatmapZone.statusKey === 'overcrowded'
+                                ? 'bg-red-100 text-red-700'
+                                : selectedHeatmapZone.statusKey === 'busy'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-green-100 text-green-700'
+                            }`}>
+                              {selectedHeatmapZone.statusLabel}
+                            </span>
+                            <span className="text-sm text-slate-500">
+                              {selectedHeatmapZone.currentCount} / {selectedHeatmapZone.capacity} people
+                            </span>
+                          </div>
+                          <div className="mt-4 rounded-2xl bg-white p-4">
+                            <div className="text-sm text-slate-500">Occupancy</div>
+                            <div className="mt-2 text-3xl font-bold text-slate-950">{selectedHeatmapZone.occupancy}%</div>
+                            <div className="mt-2 text-sm text-slate-600">{getStatusText(selectedHeatmapZone.occupancy)}</div>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="mt-4 text-sm text-slate-500">Select a zone on the map to inspect it.</p>
+                      )}
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                      <h3 className="text-lg font-semibold text-slate-950 mb-4">Zone Overview</h3>
+                      <div className="space-y-3">
+                        {eventData.zones?.map((zone) => {
+                          const matchingZone = heatmapZones.find((item) => item.name === zone.name)
+
+                          return (
+                            <button
+                              key={zone.zoneId}
+                              type="button"
+                              onClick={() => matchingZone && setSelectedHeatmapZoneId(matchingZone.id)}
+                              className={`w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:bg-white ${
+                                matchingZone?.id === selectedHeatmapZone?.id ? 'ring-2 ring-primary-200 border-primary-300' : ''
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-3 mb-2">
+                                <h4 className="font-semibold text-slate-900">{zone.name}</h4>
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                  zone.status === 'safe' ? 'bg-green-100 text-green-800' :
+                                  zone.status === 'busy' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {zone.status === 'safe' ? 'Safe' : zone.status === 'busy' ? 'Busy' : 'Avoid'}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                                <span>{zone.currentCount} / {zone.capacity} people</span>
+                                <span>({zone.occupancy}% full)</span>
+                              </div>
+                              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full transition-all duration-500 ${getStatusColor(zone.occupancy)}`}
+                                  style={{ width: `${Math.min(100, zone.occupancy)}%` }}
+                                />
+                              </div>
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
 

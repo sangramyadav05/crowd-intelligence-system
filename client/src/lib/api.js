@@ -108,4 +108,10 @@ export const publicAPI = {
   askQuestion: (id, data) => api.post(`/public/event/${id}/questions`, data)
 }
 
+export const surveillanceAPI = {
+  getOverview: (eventId) => api.get(`/surveillance/${eventId}/overview`),
+  getHeatmap: (eventId) => api.get(`/surveillance/${eventId}/heatmap`),
+  getZones: (eventId) => api.get(`/get_zones/${eventId}`)
+}
+
 export default api

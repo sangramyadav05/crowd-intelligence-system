@@ -1,8 +1,9 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { Event, Alert, User } from '../models/index.js';
+import { Event, Alert, User, VenuePlan } from '../models/index.js';
 import { protect } from '../middleware/auth.middleware.js';
 import aiService from '../services/ai.service.js';
+import { buildVenuePlanZones } from '../utils/venuePlanLayout.js';
 
 const router = express.Router();
 
@@ -46,6 +47,27 @@ const ensureFixedCoordinatorForEvent = async (event) => {
   return event;
 };
 
+const syncVenuePlanForEvent = async (event, { updatedBy = null, blueprint } = {}) => {
+  const existingPlan = await VenuePlan.findOne({ eventId: event.eventId });
+  const zones = buildVenuePlanZones(event.zones || [], existingPlan?.zones || []);
+  const update = {
+    $set: {
+      eventId: event.eventId,
+      blueprint: blueprint !== undefined ? blueprint : existingPlan?.blueprint ?? null,
+      zones,
+      flowArrows: existingPlan?.flowArrows || [],
+      ...(updatedBy ? { updatedBy } : {})
+    },
+    $inc: { version: 1 }
+  };
+
+  return VenuePlan.findOneAndUpdate(
+    { eventId: event.eventId },
+    update,
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+};
+
 // @route   GET /api/events
 // @desc    Get all events for logged in user
 // @access  Private
@@ -87,7 +109,8 @@ router.post(
         expectedCrowdSize,
         expectedAttendance,
         zones,
-        passcodes
+        passcodes,
+        blueprint
       } = req.body;
 
       let event = await Event.create({
@@ -106,6 +129,10 @@ router.post(
       });
 
       event = await ensureFixedCoordinatorForEvent(event);
+      await syncVenuePlanForEvent(event, {
+        updatedBy: req.user._id,
+        blueprint
+      });
       await event.populate('organizer', 'name email');
       await event.populate('coordinators.userId', 'name email');
       req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
@@ -146,7 +173,7 @@ router.get('/:id', protect, async (req, res) => {
 // @route   PUT /api/events/:id
 // @desc    Update event
 // @access  Private
-router.put('/:id', protect, async (req, res) => {
+  router.put('/:id', protect, async (req, res) => {
   try {
     const event = await Event.findOne({
       _id: req.params.id,
@@ -157,7 +184,7 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    const updates = req.body;
+    const { blueprint, ...updates } = req.body;
     Object.keys(updates).forEach(key => {
       if (key !== 'organizer' && key !== '_id') {
         event[key] = updates[key];
@@ -165,6 +192,10 @@ router.put('/:id', protect, async (req, res) => {
     });
 
     await event.save();
+    await syncVenuePlanForEvent(event, {
+      updatedBy: req.user._id,
+      blueprint
+    });
     await event.populate('organizer', 'name email');
     req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
       eventId: event.eventId || event._id,
@@ -180,7 +211,7 @@ router.put('/:id', protect, async (req, res) => {
 // @route   DELETE /api/events/:id
 // @desc    Delete event
 // @access  Private
-router.delete('/:id', protect, async (req, res) => {
+  router.delete('/:id', protect, async (req, res) => {
   try {
     const event = await Event.findOneAndDelete({
       _id: req.params.id,
@@ -190,6 +221,8 @@ router.delete('/:id', protect, async (req, res) => {
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
+
+    await VenuePlan.findOneAndDelete({ eventId: event.eventId });
 
     req.emitRealtime?.(event.eventId || req.params.id, 'event_plan_update', {
       eventId: event.eventId || req.params.id,
@@ -224,6 +257,7 @@ router.post('/:id/zones', protect, async (req, res) => {
     });
 
     await event.save();
+    await syncVenuePlanForEvent(event, { updatedBy: req.user._id });
     req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
       eventId: event.eventId || event._id,
       action: 'zone_added',
@@ -259,6 +293,7 @@ router.put('/:id/zones/:zoneId', protect, async (req, res) => {
     });
 
     await event.save();
+    await syncVenuePlanForEvent(event, { updatedBy: req.user._id });
     req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
       eventId: event.eventId || event._id,
       action: 'zone_updated',
@@ -286,6 +321,7 @@ router.delete('/:id/zones/:zoneId', protect, async (req, res) => {
 
     event.zones.pull(req.params.zoneId);
     await event.save();
+    await syncVenuePlanForEvent(event, { updatedBy: req.user._id });
     req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
       eventId: event.eventId || event._id,
       action: 'zone_deleted',
