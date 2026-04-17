@@ -14,6 +14,38 @@ const validate = (req, res, next) => {
   next();
 };
 
+const getFixedCoordinatorId = (event) => `CO-${String(event.accessCode).toUpperCase()}`;
+
+const ensureFixedCoordinatorForEvent = async (event) => {
+  const coordinatorId = getFixedCoordinatorId(event);
+  const existingCoordinator = event.coordinators?.find((item) => item.coordinatorId === coordinatorId);
+  if (existingCoordinator) return event;
+
+  const coordinatorEmail = `coordinator-${String(event._id)}@system.local`;
+  let coordinatorUser = await User.findOne({ email: coordinatorEmail, role: 'staff' });
+
+  if (!coordinatorUser) {
+    coordinatorUser = await User.create({
+      name: `${event.name} Coordinator`,
+      email: coordinatorEmail,
+      password: `Temp_${coordinatorId}_${Date.now()}`,
+      role: 'staff'
+    });
+  }
+
+  event.coordinators = [
+    {
+      coordinatorId,
+      userId: coordinatorUser._id,
+      name: coordinatorUser.name,
+      status: 'active'
+    }
+  ];
+
+  await event.save();
+  return event;
+};
+
 // @route   GET /api/events
 // @desc    Get all events for logged in user
 // @access  Private
@@ -58,7 +90,7 @@ router.post(
         passcodes
       } = req.body;
 
-      const event = await Event.create({
+      let event = await Event.create({
         eventId,
         name,
         description,
@@ -73,7 +105,9 @@ router.post(
         organizer: req.user._id
       });
 
+      event = await ensureFixedCoordinatorForEvent(event);
       await event.populate('organizer', 'name email');
+      await event.populate('coordinators.userId', 'name email');
       req.emitRealtime?.(event.eventId || event._id.toString(), 'event_plan_update', {
         eventId: event.eventId || event._id,
         action: 'created',
@@ -91,15 +125,18 @@ router.post(
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
-    const event = await Event.findOne({
+    let event = await Event.findOne({
       _id: req.params.id,
       organizer: req.user._id
-    }).populate('organizer', 'name email');
+    });
 
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
+    event = await ensureFixedCoordinatorForEvent(event);
+    await event.populate('organizer', 'name email');
+    await event.populate('coordinators.userId', 'name email');
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -320,14 +357,13 @@ router.post(
   protect,
   [
     param('id').isMongoId().withMessage('Valid event ID required'),
-    body('coordinatorId').trim().toUpperCase().notEmpty().withMessage('Coordinator ID is required'),
     body('coordinatorName').trim().notEmpty().withMessage('Coordinator name is required'),
     body('coordinatorEmail').optional().isEmail().normalizeEmail(),
     validate
   ],
   async (req, res) => {
     try {
-      const { coordinatorId, coordinatorName, coordinatorEmail } = req.body;
+      const { coordinatorName, coordinatorEmail } = req.body;
 
       // Verify event exists and user is organizer
       const event = await Event.findOne({
@@ -339,50 +375,42 @@ router.post(
         return res.status(404).json({ message: 'Event not found or you are not the organizer' });
       }
 
-      // Check if coordinator already exists in this event
-      if (event.coordinators.some(c => c.coordinatorId === coordinatorId)) {
-        return res.status(400).json({ message: 'Coordinator already assigned to this event' });
+      const coordinatorId = getFixedCoordinatorId(event);
+
+      const currentCoordinator = event.coordinators.find((c) => c.coordinatorId === coordinatorId);
+
+      let coordinatorUser = null;
+
+      if (coordinatorEmail) {
+        coordinatorUser = await User.findOne({ email: coordinatorEmail, role: 'staff' });
       }
-
-      // Check if coordinatorId is globally unique (not assigned to other events)
-      const existingCoordinator = await Event.findOne({
-        _id: { $ne: event._id },
-        'coordinators.coordinatorId': coordinatorId
-      });
-
-      if (existingCoordinator) {
-        return res.status(400).json({ message: 'Coordinator ID already assigned to another event' });
-      }
-
-      // Create coordinator user if doesn't exist
-      let coordinatorUser = await User.findOne({ coordinatorId });
 
       if (!coordinatorUser) {
-        // Generate a temporary password
         const tempPassword = `Temp_${coordinatorId}_${Date.now()}`;
-        
+
         coordinatorUser = await User.create({
           name: coordinatorName,
           email: coordinatorEmail || `coordinator-${coordinatorId}@system.local`,
           password: tempPassword,
-          role: 'staff',
-          coordinatorId
+          role: 'staff'
         });
+      } else {
+        coordinatorUser.name = coordinatorName;
+        await coordinatorUser.save();
       }
 
-      // Add coordinator to event
-      event.coordinators.push({
+      event.coordinators = [{
         coordinatorId,
         userId: coordinatorUser._id,
         name: coordinatorName,
         status: 'active'
-      });
+      }];
 
       await event.save();
-      await event.populate('coordinators.userId', 'name email coordinatorId');
+      await event.populate('coordinators.userId', 'name email');
 
       res.status(201).json({
-        message: 'Coordinator assigned successfully',
+        message: currentCoordinator ? 'Coordinator updated successfully' : 'Coordinator assigned successfully',
         coordinator: {
           coordinatorId,
           name: coordinatorName,
@@ -416,6 +444,7 @@ router.delete(
       // Remove coordinator from event
       event.coordinators = event.coordinators.filter(c => c.coordinatorId !== req.params.coordinatorId);
       await event.save();
+      await event.populate('coordinators.userId', 'name email');
 
       res.json({ message: 'Coordinator removed successfully', event });
     } catch (error) {

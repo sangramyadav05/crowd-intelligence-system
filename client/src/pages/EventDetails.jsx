@@ -277,7 +277,10 @@ export default function EventDetails() {
           </div>
           <div className="mt-4 lg:mt-0 flex items-center space-x-3">
             <span className="px-4 py-2 bg-primary-100 text-primary-800 rounded-lg font-medium">
-              Code: {event.accessCode}
+              Public Code: {event.accessCode}
+            </span>
+            <span className="px-4 py-2 bg-slate-100 text-slate-800 rounded-lg font-medium">
+              Coordinator ID: {event.coordinators?.[0]?.coordinatorId || 'Not ready'}
             </span>
             <span className={`px-4 py-2 rounded-lg font-medium ${
               dashboard?.stats?.status === 'active' ? 'bg-green-100 text-green-800' :
