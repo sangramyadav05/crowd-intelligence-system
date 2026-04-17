@@ -4,91 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crowd Intelligence System | Event Detail</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 24px;
-        background: #f6f7fb;
-        color: #172033;
-      }
-
-      main {
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
-      .zone-grid {
-        display: grid;
-        gap: 16px;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        margin-top: 24px;
-      }
-
-      .zone-card {
-        background: #ffffff;
-        border: 1px solid #d8deea;
-        border-radius: 12px;
-        padding: 16px;
-      }
-
-      .status {
-        display: inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-      }
-
-      .status-green {
-        background: #dff7e7;
-        color: #146c2e;
-      }
-
-      .status-orange {
-        background: #fff2db;
-        color: #9a5b00;
-      }
-
-      .status-red {
-        background: #ffe0e0;
-        color: #b42318;
-      }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main>
-      <h1>{{ event["name"] }}</h1>
-      <p>Event Code: {{ event["event_code"] }}</p>
-      <p><a href="{{ url_for('add_zone', event_id=event['id']) }}">Add Zone</a></p>
-
-      <section>
-        <h2>Zones</h2>
-        <div id="zones-container" class="zone-grid"></div>
-        <p id="zones-empty">No zones added yet.</p>
+    <main class="stack">
+      <section class="card">
+        <h1 class="page-title">Organizer Event Control Panel</h1>
+        <p class="page-subtitle">Track live occupancy, review alert severity, and manage zones for this event.</p>
+        <h2>{{ event["name"] }}</h2>
+        <p>Event Code: {{ event["event_code"] }}</p>
+        <p><a class="button-link" href="{{ url_for('add_zone', event_id=event['id']) }}">Add Zone</a></p>
       </section>
 
-      <p><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+      <section class="card">
+        <h2>Zone Alerts</h2>
+        <div id="zones-container" class="zone-grid"></div>
+        <p id="zones-empty" class="muted">No zones added yet.</p>
+      </section>
+
+      <p><a class="inline-link" href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
     </main>
 
     <script>
       const eventId = {{ event["id"] }};
       const zonesContainer = document.getElementById("zones-container");
       const emptyMessage = document.getElementById("zones-empty");
-
-      function getZoneStatus(currentCount, capacity) {
-        const ratio = capacity === 0 ? 0 : currentCount / capacity;
-
-        if (ratio >= 0.8) {
-          return { label: "High", className: "status-red" };
-        }
-
-        if (ratio >= 0.5) {
-          return { label: "Medium", className: "status-orange" };
-        }
-
-        return { label: "Low", className: "status-green" };
-      }
 
       function renderZones(zones) {
         zonesContainer.innerHTML = "";
@@ -101,15 +41,19 @@
         emptyMessage.style.display = "none";
 
         zones.forEach((zone) => {
-          const status = getZoneStatus(zone.current_count, zone.capacity);
           const zoneCard = document.createElement("article");
 
-          zoneCard.className = "zone-card";
+          zoneCard.className = "card";
           zoneCard.innerHTML = `
             <h3>${zone.zone_name}</h3>
             <p>Current Count: ${zone.current_count}</p>
             <p>Capacity: ${zone.capacity}</p>
-            <span class="status ${status.className}">${status.label}</span>
+            <p>
+              Alert:
+              <span class="status-badge status-${zone.organizer_color}">
+                ${zone.organizer_alert}
+              </span>
+            </p>
           `;
 
           zonesContainer.appendChild(zoneCard);

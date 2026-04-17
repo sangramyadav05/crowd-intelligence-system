@@ -94,7 +94,7 @@ def update_zone_counts(connection, event_id):
     zones = get_zones_for_event(connection, event_id)
 
     for zone in zones:
-        simulated_count = random.randint(0, zone["capacity"])
+        simulated_count = random.randint(0, zone["capacity"] + 20)
         connection.execute(
             "UPDATE zones SET current_count = ? WHERE id = ?",
             (simulated_count, zone["id"]),
@@ -147,16 +147,65 @@ def require_login():
     return "user_id" in session
 
 
-def serialize_zones(zones):
-    return [
-        {
-            "id": zone["id"],
-            "zone_name": zone["zone_name"],
-            "capacity": zone["capacity"],
-            "current_count": zone["current_count"],
+def get_organizer_status(current_count, capacity):
+    if current_count > capacity:
+        return {
+            "label": "Overcrowded",
+            "color": "red",
         }
-        for zone in zones
-    ]
+
+    if capacity and current_count > capacity * 0.7:
+        return {
+            "label": "Getting crowded",
+            "color": "orange",
+        }
+
+    return {
+        "label": "Safe",
+        "color": "green",
+    }
+
+
+def get_public_status(current_count, capacity):
+    if current_count > capacity:
+        return {
+            "label": "Avoid",
+            "color": "red",
+        }
+
+    if capacity and current_count > capacity * 0.7:
+        return {
+            "label": "Busy",
+            "color": "orange",
+        }
+
+    return {
+        "label": "Safe",
+        "color": "green",
+    }
+
+
+def serialize_zones(zones):
+    serialized_zones = []
+
+    for zone in zones:
+        organizer_status = get_organizer_status(zone["current_count"], zone["capacity"])
+        public_status = get_public_status(zone["current_count"], zone["capacity"])
+
+        serialized_zones.append(
+            {
+                "id": zone["id"],
+                "zone_name": zone["zone_name"],
+                "capacity": zone["capacity"],
+                "current_count": zone["current_count"],
+                "organizer_alert": organizer_status["label"],
+                "organizer_color": organizer_status["color"],
+                "public_status": public_status["label"],
+                "public_color": public_status["color"],
+            }
+        )
+
+    return serialized_zones
 
 
 @app.route("/")

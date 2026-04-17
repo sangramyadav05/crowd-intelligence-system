@@ -1,0 +1,98 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 24px;
+  background: #f6f7fb;
+  color: #172033;
+}
+
+main {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  color: #4b5b76;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #d8deea;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 18px rgba(23, 32, 51, 0.06);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zone-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 24px;
+}
+
+.event-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.event-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-green {
+  background: #dff7e7;
+  color: #146c2e;
+}
+
+.status-orange {
+  background: #fff2db;
+  color: #9a5b00;
+}
+
+.status-red {
+  background: #ffe0e0;
+  color: #b42318;
+}
+
+.muted {
+  color: #62748f;
+}
+
+.button-link {
+  display: inline-block;
+  text-decoration: none;
+  background: #172033;
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.inline-link {
+  color: #214bd6;
+  text-decoration: none;
+  font-weight: 600;
+}

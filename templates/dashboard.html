@@ -4,25 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crowd Intelligence System | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main>
-      <h1>Dashboard</h1>
-      <p>Welcome, {{ user_email }}.</p>
-      <p><a href="{{ url_for('create_event') }}">Create Event</a></p>
-      <section>
+    <main class="stack">
+      <section class="card">
+        <h1 class="page-title">Organizer Dashboard</h1>
+        <p class="page-subtitle">Monitor your events, manage zones, and review live crowd alerts.</p>
+        <p>Welcome, {{ user_email }}.</p>
+        <p><a class="button-link" href="{{ url_for('create_event') }}">Create Event</a></p>
+      </section>
+
+      <section class="card">
         <h2>Your Events</h2>
         {% if events %}
-        <ul>
+        <div class="event-list">
           {% for event in events %}
-          <li>
-            {{ event["name"] }} - {{ event["event_code"] }}
-            <a href="{{ url_for('event_detail', event_id=event['id']) }}">Manage</a>
-          </li>
+          <div class="event-row">
+            <div>
+              <strong>{{ event["name"] }}</strong>
+              <p class="muted">Event Code: {{ event["event_code"] }}</p>
+            </div>
+            <a class="inline-link" href="{{ url_for('event_detail', event_id=event['id']) }}">Manage</a>
+          </div>
           {% endfor %}
-        </ul>
+        </div>
         {% else %}
-        <p>No events created yet.</p>
+        <p class="muted">No events created yet.</p>
         {% endif %}
       </section>
     </main>
