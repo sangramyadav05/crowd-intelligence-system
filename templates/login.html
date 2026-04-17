@@ -1,38 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crowd Intelligence System | Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-  </head>
-  <body>
-    <main class="shell">
-      <span class="eyebrow">Organizer Access</span>
-      <h1 class="page-title">Login</h1>
-      <p class="page-subtitle">
-        Access the operational dashboard to manage events, zones, and live crowd alerts.
-      </p>
-      {% if error %}
-      <p class="notice">{{ error }}</p>
-      {% endif %}
-      <form method="post">
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="Enter your email" />
-        </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter your password"
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      <p><a class="inline-link" href="{{ url_for('register') }}">Create an account</a></p>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Crowd Intelligence System | Login{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="eyebrow">Organizer Access</span>
+    <h1 class="page-title">Sign in to the control system</h1>
+    <p class="page-subtitle">
+      Access event operations, configure zones, and monitor live crowd behavior from one
+      organizer console.
+    </p>
+  </div>
+</section>
+
+<section class="card form-card">
+  <h2 class="section-title">Login</h2>
+  <form method="post">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" required />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required />
+    </div>
+    <button type="submit">Login</button>
+  </form>
+  <p class="section-copy">
+    Need an account? <a class="inline-link" href="{{ url_for('auth.register') }}">Register here</a>
+  </p>
+</section>
+{% endblock %}

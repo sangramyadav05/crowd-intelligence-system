@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Crowd Intelligence System | Create Event{% endblock %}
+{% block title %}Crowd Intelligence System | Edit Event{% endblock %}
 
 {% block content %}
 <section class="hero">
   <div>
     <span class="eyebrow">Event Setup</span>
-    <h1 class="page-title">Create a new event</h1>
+    <h1 class="page-title">Edit event</h1>
     <p class="page-subtitle">
-      Define a new monitored event and generate a public access code for live crowd status.
+      Update the event name while preserving the event code and linked zones.
     </p>
   </div>
 </section>
@@ -18,9 +18,9 @@
   <form method="post">
     <div class="field">
       <label for="name">Event Name</label>
-      <input id="name" type="text" name="name" required />
+      <input id="name" type="text" name="name" value="{{ event['name'] }}" required />
     </div>
-    <button type="submit">Create Event</button>
+    <button type="submit">Save Changes</button>
   </form>
 </section>
 {% endblock %}

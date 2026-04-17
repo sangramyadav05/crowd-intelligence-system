@@ -1,38 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crowd Intelligence System | Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-  </head>
-  <body>
-    <main class="shell">
-      <span class="eyebrow">New Organizer</span>
-      <h1 class="page-title">Register</h1>
-      <p class="page-subtitle">
-        Create a simple organizer account to access event creation and zone management.
-      </p>
-      {% if error %}
-      <p class="notice">{{ error }}</p>
-      {% endif %}
-      <form method="post">
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="Enter your email" />
-        </div>
-        <div class="field">
-          <label for="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Create a password"
-          />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-      <p><a class="inline-link" href="{{ url_for('login') }}">Back to login</a></p>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Crowd Intelligence System | Register{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="eyebrow">Organizer Access</span>
+    <h1 class="page-title">Create organizer account</h1>
+    <p class="page-subtitle">
+      Set up an organizer profile to manage events, zones, and live crowd operations.
+    </p>
+  </div>
+</section>
+
+<section class="card form-card">
+  <h2 class="section-title">Register</h2>
+  <form method="post">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" required />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" required />
+    </div>
+    <button type="submit">Create Account</button>
+  </form>
+  <p class="section-copy">
+    Already registered? <a class="inline-link" href="{{ url_for('auth.login') }}">Log in</a>
+  </p>
+</section>
+{% endblock %}

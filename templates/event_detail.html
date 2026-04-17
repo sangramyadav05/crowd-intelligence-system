@@ -1,92 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crowd Intelligence System | Event Detail</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-  </head>
-  <body>
-    <main class="stack shell">
-      <section class="hero">
-        <div>
-          <span class="eyebrow">Event Control</span>
-          <h1 class="page-title">Organizer Event Control Panel</h1>
-          <p class="page-subtitle">
-            Track live occupancy, review alert severity, and make better crowd management
-            decisions for this event.
-          </p>
-        </div>
-        <a class="button-link" href="{{ url_for('add_zone', event_id=event['id']) }}">Add Zone</a>
-      </section>
+{% extends "base.html" %}
 
-      <section class="card">
-        <h2>{{ event["name"] }}</h2>
-        <div class="detail-row">
-          <span class="detail-chip">Event Code: {{ event["event_code"] }}</span>
-        </div>
-      </section>
+{% block title %}Crowd Intelligence System | Event Control{% endblock %}
 
-      <section class="card">
-        <h2 class="section-title">Zone Alerts</h2>
-        <p class="section-copy">
-          Alerts update every 3 seconds. Red requires immediate intervention, orange
-          indicates rising pressure, and green remains safe.
-        </p>
-        <div id="zones-container" class="zone-grid"></div>
-        <p id="zones-empty" class="empty-state">No zones added yet.</p>
-      </section>
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="eyebrow">Event Control</span>
+    <h1 class="page-title">Organizer event control panel</h1>
+    <p class="page-subtitle">
+      Track live occupancy, review alert severity, and use simulation controls for demo
+      and operational planning.
+    </p>
+  </div>
+  <div class="action-row">
+    <a class="button-link" href="{{ url_for('events.add_zone', event_id=event['id']) }}">Add Zone</a>
+    <a class="ghost button-link" href="{{ url_for('events.dashboard') }}">Back to Dashboard</a>
+  </div>
+</section>
 
-      <p><a class="inline-link" href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
-    </main>
+<section class="card">
+  <div class="event-row">
+    <div>
+      <h2 class="section-title">{{ event["name"] }}</h2>
+      <div class="detail-row">
+        <span class="detail-chip">Event Code: {{ event["event_code"] }}</span>
+        <span class="detail-chip">Live refresh: every 3 seconds</span>
+        <span id="last-updated" class="detail-chip">Last updated: waiting</span>
+      </div>
+    </div>
+    <div class="action-row">
+      <form method="post" action="{{ url_for('events.event_simulation_action', event_id=event['id']) }}">
+        <input type="hidden" name="action" value="surge" />
+        <button type="submit">Trigger Surge</button>
+      </form>
+      <form method="post" action="{{ url_for('events.event_simulation_action', event_id=event['id']) }}">
+        <input type="hidden" name="action" value="reset" />
+        <button class="ghost" type="submit">Reset Counts</button>
+      </form>
+    </div>
+  </div>
+</section>
 
-    <script>
-      const eventId = {{ event["id"] }};
-      const zonesContainer = document.getElementById("zones-container");
-      const emptyMessage = document.getElementById("zones-empty");
+<section class="card">
+  <h2 class="section-title">Zone alerts</h2>
+  <p class="section-copy">
+    Red requires immediate action, orange indicates rising pressure, and green remains
+    safe. Demo controls let you force a surge or reset live counts.
+  </p>
+  <div id="zones-error" class="notice hidden"></div>
+  <div
+    id="zones-container"
+    class="zone-grid"
+    data-event-id="{{ event['id'] }}"
+    data-edit-template="{{ url_for('events.edit_zone', event_id=event['id'], zone_id=0)[:-1] }}"
+    data-delete-template="{{ url_for('events.delete_zone', event_id=event['id'], zone_id=0)[:-1] }}"
+  ></div>
+  <p id="zones-empty" class="empty-state">No zones added yet.</p>
+</section>
 
-      function renderZones(zones) {
-        zonesContainer.innerHTML = "";
-
-        if (!zones.length) {
-          emptyMessage.style.display = "block";
-          return;
-        }
-
-        emptyMessage.style.display = "none";
-
-        zones.forEach((zone) => {
-          const zoneCard = document.createElement("article");
-
-          zoneCard.className = "card";
-          zoneCard.innerHTML = `
-            <h3>${zone.zone_name}</h3>
-            <div class="detail-row">
-              <span class="detail-chip">Current Count: ${zone.current_count}</span>
-              <span class="detail-chip">Capacity: ${zone.capacity}</span>
-            </div>
-            <p>
-              Alert:
-              <span class="status-badge status-${zone.organizer_color}">
-                ${zone.organizer_alert}
-              </span>
-            </p>
-            <p class="alert-text">System assessment: ${zone.organizer_alert}</p>
-          `;
-
-          zonesContainer.appendChild(zoneCard);
-        });
-      }
-
-      async function refreshZones() {
-        await fetch(`/api/update_crowd/${eventId}`);
-        const response = await fetch(`/api/get_zones/${eventId}`);
-        const data = await response.json();
-        renderZones(data.zones || []);
-      }
-
-      refreshZones();
-      setInterval(refreshZones, 3000);
-    </script>
-  </body>
-</html>
+<script>
+  window.initialZones = {{ initial_zones | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/event_detail.js') }}"></script>
+{% endblock %}

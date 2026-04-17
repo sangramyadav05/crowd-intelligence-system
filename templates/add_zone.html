@@ -1,37 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crowd Intelligence System | Add Zone</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-  </head>
-  <body>
-    <main class="shell">
-      <span class="eyebrow">Zone Setup</span>
-      <h1 class="page-title">Add Zone</h1>
-      <p class="page-subtitle">
-        Define the zone name and capacity so crowd simulation and alerts can be tracked.
-      </p>
-      <div class="detail-row">
-        <span class="detail-chip">Event: {{ event["name"] }}</span>
-        <span class="detail-chip">Code: {{ event["event_code"] }}</span>
-      </div>
-      {% if error %}
-      <p class="notice">{{ error }}</p>
-      {% endif %}
-      <form method="post">
-        <div class="field">
-          <label for="zone_name">Zone Name</label>
-          <input id="zone_name" name="zone_name" type="text" placeholder="Enter zone name" />
-        </div>
-        <div class="field">
-          <label for="capacity">Capacity</label>
-          <input id="capacity" name="capacity" type="number" min="0" placeholder="Enter capacity" />
-        </div>
-        <button type="submit">Add Zone</button>
-      </form>
-      <p><a class="inline-link" href="{{ url_for('event_detail', event_id=event['id']) }}">Back to event</a></p>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Crowd Intelligence System | Add Zone{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="eyebrow">Zone Setup</span>
+    <h1 class="page-title">Add zone to {{ event["name"] }}</h1>
+    <p class="page-subtitle">
+      Create operational zones with capacity limits so live crowd pressure can be tracked.
+    </p>
+  </div>
+</section>
+
+<section class="card form-card">
+  <h2 class="section-title">Zone configuration</h2>
+  <form method="post">
+    <div class="field">
+      <label for="zone_name">Zone Name</label>
+      <input id="zone_name" type="text" name="zone_name" required />
+    </div>
+    <div class="field">
+      <label for="capacity">Capacity</label>
+      <input id="capacity" type="number" min="1" name="capacity" required />
+    </div>
+    <button type="submit">Add Zone</button>
+  </form>
+</section>
+{% endblock %}
