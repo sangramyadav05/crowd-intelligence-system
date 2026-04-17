@@ -173,15 +173,16 @@ router.post('/event/:id/questions', async (req, res) => {
       return res.status(400).json({ message: 'Question message is required' });
     }
 
+    const roomEventId = event.eventId || event._id.toString();
     const payload = {
-      eventId: event._id,
+      eventId: roomEventId,
       zoneId,
       question: message.trim(),
       from,
       timestamp: new Date()
     };
 
-    req.emitRealtime?.(event._id.toString(), 'gathering_question', payload);
+    req.emitRealtime?.(roomEventId, 'gathering_question', payload);
     res.status(201).json(payload);
   } catch (error) {
     res.status(500).json({ message: error.message });

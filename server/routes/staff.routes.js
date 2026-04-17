@@ -1,8 +1,18 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { Event, Alert } from '../models/index.js';
 import { protect, staffOrAdmin } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
+
+const buildEventLookup = (identifier) => {
+  const normalized = String(identifier).trim();
+  const clauses = [{ eventId: normalized.toUpperCase() }];
+  if (mongoose.isValidObjectId(normalized)) {
+    clauses.push({ _id: normalized });
+  }
+  return { $or: clauses };
+};
 
 router.use(protect, staffOrAdmin);
 
@@ -25,7 +35,7 @@ router.get('/events', async (req, res) => {
 // @access  Staff/Admin
 router.post('/events/:id/incidents', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -45,14 +55,15 @@ router.post('/events/:id/incidents', async (req, res) => {
       recommendedAction: 'Review the reported incident and deploy nearest staff.'
     });
 
-    req.emitRealtime?.(event._id.toString(), 'gathering_question', {
-      eventId: event._id,
+    const roomEventId = event.eventId || event._id.toString();
+    req.emitRealtime?.(roomEventId, 'gathering_question', {
+      eventId: roomEventId,
       question: message.trim(),
       fromRole: req.user.role,
       zoneId: zoneId || 'general'
     });
-    req.emitRealtime?.(event._id.toString(), 'staff_incident_reported', {
-      eventId: event._id,
+    req.emitRealtime?.(roomEventId, 'staff_incident_reported', {
+      eventId: roomEventId,
       incident
     });
 
@@ -67,7 +78,7 @@ router.post('/events/:id/incidents', async (req, res) => {
 // @access  Staff/Admin
 router.post('/events/:id/answers', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -77,15 +88,16 @@ router.post('/events/:id/answers', async (req, res) => {
       return res.status(400).json({ message: 'Answer message is required' });
     }
 
+    const roomEventId = event.eventId || event._id.toString();
     const payload = {
-      eventId: event._id,
+      eventId: roomEventId,
       zoneId,
       answer: message.trim(),
       by: req.user.name,
       role: req.user.role,
       timestamp: new Date()
     };
-    req.emitRealtime?.(event._id.toString(), 'gathering_answer', payload);
+    req.emitRealtime?.(roomEventId, 'gathering_answer', payload);
 
     res.status(201).json(payload);
   } catch (error) {

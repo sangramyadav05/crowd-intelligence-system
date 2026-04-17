@@ -1,9 +1,19 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { Event, User, Alert, CrowdData } from '../models/index.js';
 import { protect, adminOnly } from '../middleware/auth.middleware.js';
 import aiService from '../services/ai.service.js';
 
 const router = express.Router();
+
+const buildEventLookup = (identifier) => {
+  const normalized = String(identifier).trim();
+  const clauses = [{ eventId: normalized.toUpperCase() }];
+  if (mongoose.isValidObjectId(normalized)) {
+    clauses.push({ _id: normalized });
+  }
+  return { $or: clauses };
+};
 
 // All routes are protected and admin-only
 router.use(protect, adminOnly);
@@ -55,7 +65,10 @@ router.get('/dashboard', async (req, res) => {
         totalUsers,
         pendingAlerts: totalAlerts
       },
-      recentEvents,
+      recentEvents: recentEvents.map((event) => ({
+        ...event.toObject(),
+        status: event.getStatus()
+      })),
       criticalAlerts,
       userGrowth: userStats
     });
@@ -108,7 +121,7 @@ router.get('/events', async (req, res) => {
 // @access  Admin
 router.get('/events/:id', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id)
+    const event = await Event.findOne(buildEventLookup(req.params.id))
       .populate('organizer', 'name email');
 
     if (!event) {
@@ -139,7 +152,7 @@ router.get('/events/:id', async (req, res) => {
       aiAnalysis: {
         anomalies,
         recommendations,
-        riskLevel: this._calculateEventRisk(event, anomalies)
+        riskLevel: _calculateEventRisk(event, anomalies)
       }
     });
   } catch (error) {
@@ -152,7 +165,7 @@ router.get('/events/:id', async (req, res) => {
 // @access  Admin
 router.put('/events/:id', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
 
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
@@ -167,8 +180,9 @@ router.put('/events/:id', async (req, res) => {
 
     await event.save();
     await event.populate('organizer', 'name email');
-    req.emitRealtime?.(event._id.toString(), 'event_plan_update', {
-      eventId: event._id,
+    const roomEventId = event.eventId || event._id.toString();
+    req.emitRealtime?.(roomEventId, 'event_plan_update', {
+      eventId: roomEventId,
       action: 'admin_updated',
       event
     });
@@ -184,17 +198,18 @@ router.put('/events/:id', async (req, res) => {
 // @access  Admin
 router.delete('/events/:id', async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
+    const event = await Event.findOneAndDelete(buildEventLookup(req.params.id));
 
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
     // Clean up related data
-    await CrowdData.deleteMany({ event: req.params.id });
-    await Alert.deleteMany({ event: req.params.id });
-    req.emitRealtime?.(req.params.id, 'event_plan_update', {
-      eventId: req.params.id,
+    await CrowdData.deleteMany({ event: event._id });
+    await Alert.deleteMany({ event: event._id });
+    const roomEventId = event.eventId || event._id.toString();
+    req.emitRealtime?.(roomEventId, 'event_plan_update', {
+      eventId: roomEventId,
       action: 'admin_deleted'
     });
 
@@ -325,7 +340,7 @@ router.put('/alerts/:id/resolve', async (req, res) => {
 // @access  Admin
 router.post('/events/:id/emergency/activate', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -360,7 +375,7 @@ router.post('/events/:id/emergency/activate', async (req, res) => {
 // @access  Admin
 router.post('/events/:id/emergency/deactivate', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -393,7 +408,7 @@ router.post('/events/:id/emergency/deactivate', async (req, res) => {
 // @access  Admin
 router.post('/events/:id/commands', async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findOne(buildEventLookup(req.params.id));
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }

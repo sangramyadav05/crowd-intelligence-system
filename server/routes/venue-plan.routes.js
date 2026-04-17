@@ -4,8 +4,6 @@ import { protect, staffOrAdmin } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(protect, staffOrAdmin);
-
 const normalizeEventId = async (eventIdentifier) => {
   const event = await Event.findOne({
     $or: [
@@ -25,12 +23,12 @@ router.get('/:eventId', async (req, res) => {
 
     let plan = await VenuePlan.findOne({ eventId: event.eventId });
     if (!plan) {
-      plan = await VenuePlan.create({
+      plan = {
         eventId: event.eventId,
-        updatedBy: req.user._id,
+        version: 0,
         zones: [],
         flowArrows: []
-      });
+      };
     }
     res.json(plan);
   } catch (error) {
@@ -40,7 +38,7 @@ router.get('/:eventId', async (req, res) => {
 
 // @route   PUT /api/venue-plan/:eventId
 // @desc    Replace full venue plan
-router.put('/:eventId', async (req, res) => {
+router.put('/:eventId', protect, staffOrAdmin, async (req, res) => {
   try {
     const event = await normalizeEventId(req.params.eventId);
     if (!event) return res.status(404).json({ message: 'Event not found' });
@@ -73,7 +71,7 @@ router.put('/:eventId', async (req, res) => {
 
 // @route   PATCH /api/venue-plan/:eventId/zones/:zoneId
 // @desc    Update individual zone properties
-router.patch('/:eventId/zones/:zoneId', async (req, res) => {
+router.patch('/:eventId/zones/:zoneId', protect, staffOrAdmin, async (req, res) => {
   try {
     const event = await normalizeEventId(req.params.eventId);
     if (!event) return res.status(404).json({ message: 'Event not found' });
