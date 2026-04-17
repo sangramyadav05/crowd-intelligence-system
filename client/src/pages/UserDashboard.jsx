@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Plus, Calendar, Users, MapPin, ArrowRight, Activity, AlertCircle, TrendingUp } from 'lucide-react'
+import { Plus, Calendar, Users, MapPin, ArrowRight, Activity, AlertCircle, TrendingUp, Trash2 } from 'lucide-react'
 import { eventAPI } from '../lib/api'
 
 export default function UserDashboard() {
@@ -38,6 +38,34 @@ export default function UserDashboard() {
       console.error('Error fetching events:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleDeleteEvent = async (eventId, eventName, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (window.confirm(`Are you sure you want to delete "${eventName}"? This action cannot be undone.`)) {
+      try {
+        await eventAPI.delete(eventId)
+        setEvents(events.filter(e => e._id !== eventId))
+        
+        // Recalculate stats
+        const updatedEvents = events.filter(e => e._id !== eventId)
+        const now = new Date()
+        const active = updatedEvents.filter(e => new Date(e.startTime) <= now && new Date(e.endTime) >= now)
+        const totalCrowd = updatedEvents.reduce((sum, e) => sum + (e.zones?.reduce((z, zone) => z + (zone.currentCount || 0), 0) || 0), 0)
+        
+        setStats({
+          totalEvents: updatedEvents.length,
+          activeEvents: active.length,
+          totalCrowd,
+          alerts: active.reduce((sum, e) => sum + (e.zones?.filter(z => z.currentCount > z.capacity * 0.8).length || 0), 0)
+        })
+      } catch (error) {
+        console.error('Error deleting event:', error)
+        alert('Failed to delete event. Please try again.')
+      }
     }
   }
 
@@ -182,8 +210,15 @@ export default function UserDashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex items-center space-x-2">
                       <ArrowRight className="w-5 h-5 text-gray-400" />
+                      <button
+                        onClick={(e) => handleDeleteEvent(event._id, event.name, e)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                        title="Delete event"
+                      >
+                        <Trash2 className="w-5 h-5 text-gray-400 group-hover:text-red-600" />
+                      </button>
                     </div>
                   </div>
                 </Link>
