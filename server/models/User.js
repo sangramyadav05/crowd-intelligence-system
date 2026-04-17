@@ -24,6 +24,13 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin', 'staff'],
     default: 'user'
   },
+  coordinatorId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    uppercase: true,
+    trim: true
+  },
   isActive: {
     type: Boolean,
     default: true

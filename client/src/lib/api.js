@@ -29,7 +29,9 @@ export const eventAPI = {
   getDashboard: (id) => api.get(`/events/${id}/dashboard`),
   addZone: (id, data) => api.post(`/events/${id}/zones`, data),
   updateZone: (eventId, zoneId, data) => api.put(`/events/${eventId}/zones/${zoneId}`, data),
-  deleteZone: (eventId, zoneId) => api.delete(`/events/${eventId}/zones/${zoneId}`)
+  deleteZone: (eventId, zoneId) => api.delete(`/events/${eventId}/zones/${zoneId}`),
+  assignCoordinator: (eventId, data) => api.post(`/events/${eventId}/assign-coordinator`, data),
+  removeCoordinator: (eventId, coordinatorId) => api.delete(`/events/${eventId}/coordinators/${coordinatorId}`)
 }
 
 // Crowd Data APIs

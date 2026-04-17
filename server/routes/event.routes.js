@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { Event, Alert } from '../models/index.js';
+import { Event, Alert, User } from '../models/index.js';
 import { protect } from '../middleware/auth.middleware.js';
 import aiService from '../services/ai.service.js';
 
@@ -311,5 +311,117 @@ router.get('/:id/dashboard', protect, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// @route   POST /api/events/:id/assign-coordinator
+// @desc    Assign coordinator to event
+// @access  Private (Event organizer only)
+router.post(
+  '/:id/assign-coordinator',
+  protect,
+  [
+    param('id').isMongoId().withMessage('Valid event ID required'),
+    body('coordinatorId').trim().toUpperCase().notEmpty().withMessage('Coordinator ID is required'),
+    body('coordinatorName').trim().notEmpty().withMessage('Coordinator name is required'),
+    body('coordinatorEmail').optional().isEmail().normalizeEmail(),
+    validate
+  ],
+  async (req, res) => {
+    try {
+      const { coordinatorId, coordinatorName, coordinatorEmail } = req.body;
+
+      // Verify event exists and user is organizer
+      const event = await Event.findOne({
+        _id: req.params.id,
+        organizer: req.user._id
+      });
+
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found or you are not the organizer' });
+      }
+
+      // Check if coordinator already exists in this event
+      if (event.coordinators.some(c => c.coordinatorId === coordinatorId)) {
+        return res.status(400).json({ message: 'Coordinator already assigned to this event' });
+      }
+
+      // Check if coordinatorId is globally unique (not assigned to other events)
+      const existingCoordinator = await Event.findOne({
+        _id: { $ne: event._id },
+        'coordinators.coordinatorId': coordinatorId
+      });
+
+      if (existingCoordinator) {
+        return res.status(400).json({ message: 'Coordinator ID already assigned to another event' });
+      }
+
+      // Create coordinator user if doesn't exist
+      let coordinatorUser = await User.findOne({ coordinatorId });
+
+      if (!coordinatorUser) {
+        // Generate a temporary password
+        const tempPassword = `Temp_${coordinatorId}_${Date.now()}`;
+        
+        coordinatorUser = await User.create({
+          name: coordinatorName,
+          email: coordinatorEmail || `coordinator-${coordinatorId}@system.local`,
+          password: tempPassword,
+          role: 'staff',
+          coordinatorId
+        });
+      }
+
+      // Add coordinator to event
+      event.coordinators.push({
+        coordinatorId,
+        userId: coordinatorUser._id,
+        name: coordinatorName,
+        status: 'active'
+      });
+
+      await event.save();
+      await event.populate('coordinators.userId', 'name email coordinatorId');
+
+      res.status(201).json({
+        message: 'Coordinator assigned successfully',
+        coordinator: {
+          coordinatorId,
+          name: coordinatorName,
+          email: coordinatorEmail || coordinatorUser.email
+        },
+        event: event
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// @route   DELETE /api/events/:id/coordinators/:coordinatorId
+// @desc    Remove coordinator from event
+// @access  Private (Event organizer only)
+router.delete(
+  '/:id/coordinators/:coordinatorId',
+  protect,
+  async (req, res) => {
+    try {
+      const event = await Event.findOne({
+        _id: req.params.id,
+        organizer: req.user._id
+      });
+
+      if (!event) {
+        return res.status(404).json({ message: 'Event not found or you are not the organizer' });
+      }
+
+      // Remove coordinator from event
+      event.coordinators = event.coordinators.filter(c => c.coordinatorId !== req.params.coordinatorId);
+      await event.save();
+
+      res.json({ message: 'Coordinator removed successfully', event });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
 
 export default router;

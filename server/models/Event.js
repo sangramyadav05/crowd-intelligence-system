@@ -77,6 +77,27 @@ const eventSchema = new mongoose.Schema({
     unique: true,
     uppercase: true
   },
+  coordinators: [{
+    coordinatorId: {
+      type: String,
+      required: true,
+      uppercase: true
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    name: String,
+    status: {
+      type: String,
+      enum: ['active', 'inactive'],
+      default: 'active'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   organizer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

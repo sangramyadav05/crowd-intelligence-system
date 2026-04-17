@@ -60,7 +60,7 @@ router.post(
 );
 
 // @route   POST /api/auth/login
-// @desc    Login user
+// @desc    Login user (Crowd Manager with email/password or Coordinator with ID)
 // @access  Public
 router.post(
   '/login',
@@ -68,8 +68,8 @@ router.post(
     body('role').optional().isIn(['user', 'staff']).withMessage('Invalid role'),
     body('email').optional().isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').optional().notEmpty().withMessage('Password is required'),
+    body('coordinatorId').optional().isString().trim().toUpperCase(),
     body('eventId').optional().isString().trim(),
-    body('accessCode').optional().isString().trim(),
     validate
   ],
   async (req, res) => {
@@ -78,29 +78,83 @@ router.post(
         role = 'user',
         email,
         password,
-        eventId,
-        accessCode
+        coordinatorId,
+        eventId
       } = req.body;
 
-      // Credential-based login flow for user and staff roles.
-      if (!email || !password) {
-        return res.status(400).json({ message: 'email and password are required' });
+      // Crowd Manager login with email and password
+      if (role === 'user') {
+        if (!email || !password) {
+          return res.status(400).json({ message: 'Email and password are required for Crowd Manager login' });
+        }
+
+        const user = await User.findOne({ email, role: 'user' });
+        if (!user || !(await user.comparePassword(password))) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        user.lastLogin = new Date();
+        await user.save();
+        return res.json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token: generateToken(user._id)
+        });
       }
 
-      const user = await User.findOne({ email });
-      if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+      // Coordinator login with Coordinator ID
+      if (role === 'staff') {
+        if (!coordinatorId || !eventId) {
+          return res.status(400).json({ message: 'Coordinator ID and Event ID are required for Coordinator login' });
+        }
+
+        // Find event and verify coordinator is assigned
+        const event = await Event.findOne({
+          _id: eventId,
+          'coordinators.coordinatorId': coordinatorId
+        });
+
+        if (!event) {
+          return res.status(401).json({ message: 'Invalid Coordinator ID or Event ID' });
+        }
+
+        // Find coordinator in event
+        const coordinatorInfo = event.coordinators.find(c => c.coordinatorId === coordinatorId);
+        
+        if (coordinatorInfo.status !== 'active') {
+          return res.status(401).json({ message: 'Coordinator account is inactive' });
+        }
+
+        // Find or create coordinator user if needed
+        let user;
+        if (coordinatorInfo.userId) {
+          user = await User.findById(coordinatorInfo.userId);
+          if (!user) {
+            return res.status(401).json({ message: 'Coordinator user not found' });
+          }
+        } else {
+          // Try to find user by coordinatorId
+          user = await User.findOne({ coordinatorId, role: 'staff' });
+          if (!user) {
+            return res.status(401).json({ message: 'Coordinator account not found' });
+          }
+        }
+
+        user.lastLogin = new Date();
+        await user.save();
+        return res.json({
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          coordinatorId: user.coordinatorId,
+          token: generateToken(user._id)
+        });
       }
 
-      user.lastLogin = new Date();
-      await user.save();
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user._id)
-      });
+      return res.status(400).json({ message: 'Invalid role' });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Users } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Users, ID } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export default function Login() {
@@ -9,7 +9,9 @@ export default function Login() {
   const [formData, setFormData] = useState({
     role: 'user',
     email: '',
-    password: ''
+    password: '',
+    coordinatorId: '',
+    eventId: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading, error, clearError } = useAuthStore()
@@ -30,11 +32,24 @@ export default function Login() {
     e.preventDefault()
     clearError()
     try {
-      const payload = {
-        role: formData.role,
-        email: formData.email,
-        password: formData.password
+      let payload
+      
+      if (formData.role === 'user') {
+        // Crowd Manager login
+        payload = {
+          role: formData.role,
+          email: formData.email,
+          password: formData.password
+        }
+      } else if (formData.role === 'staff') {
+        // Coordinator login
+        payload = {
+          role: formData.role,
+          coordinatorId: formData.coordinatorId,
+          eventId: formData.eventId
+        }
       }
+      
       const data = await login(payload)
       if (data.role === 'user') navigate('/dashboard')
       else if (data.role === 'staff') navigate('/staff')
@@ -96,43 +111,75 @@ export default function Login() {
 
 
 
-            {(formData.role === 'user' || formData.role === 'staff') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
+            {formData.role === 'user' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
-            {(formData.role === 'user' || formData.role === 'staff') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
+            {formData.role === 'staff' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Coordinator ID</label>
+                  <div className="relative">
+                    <ID className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.coordinatorId}
+                      onChange={(e) => setFormData({ ...formData, coordinatorId: e.target.value.toUpperCase() })}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      placeholder="e.g., COORD001"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event ID</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.eventId}
+                      onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter event ID provided by Crowd Manager"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <button
