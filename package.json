@@ -3,10 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "Unified full-stack foundation for the Crowd Intelligence System hackathon project.",
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "npm --prefix backend run dev",
