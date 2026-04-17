@@ -120,7 +120,7 @@ export default function AdminLogin() {
             <p className="text-gray-600">
               Not an admin?{' '}
               <Link to="/login" className="text-primary-600 font-semibold hover:text-primary-700">
-                User Login
+                Crowd Manager Login
               </Link>
             </p>
           </div>

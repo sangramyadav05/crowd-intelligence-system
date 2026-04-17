@@ -114,10 +114,6 @@ const eventSchema = new mongoose.Schema({
     issuedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     createdAt: { type: Date, default: Date.now }
   }],
-  passcodes: {
-    crowd: { type: String, default: '' },
-    observer: { type: String, default: '' }
-  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -142,8 +138,6 @@ eventSchema.pre('validate', async function(next) {
   
   if (!this.accessCode) this.accessCode = generateCode();
   if (!this.eventId) this.eventId = `EVT-${generateCode()}`;
-  if (!this.passcodes?.crowd) this.passcodes.crowd = generateCode();
-  if (!this.passcodes?.observer) this.passcodes.observer = generateCode();
   if (!this.expectedAttendance) this.expectedAttendance = this.expectedCrowdSize;
   next();
 });

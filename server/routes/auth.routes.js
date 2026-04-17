@@ -65,7 +65,7 @@ router.post(
 router.post(
   '/login',
   [
-    body('role').optional().isIn(['admin', 'staff', 'crowd', 'observer', 'user']).withMessage('Invalid role'),
+    body('role').optional().isIn(['user', 'staff']).withMessage('Invalid role'),
     body('email').optional().isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').optional().notEmpty().withMessage('Password is required'),
     body('eventId').optional().isString().trim(),
@@ -82,81 +82,7 @@ router.post(
         accessCode
       } = req.body;
 
-      // Event-specific passcode flow for crowd and observer roles.
-      if (role === 'crowd' || role === 'observer') {
-        if (!eventId || !accessCode) {
-          return res.status(400).json({ message: 'eventId and accessCode are required for crowd/observer login' });
-        }
-        const event = await Event.findOne({
-          eventId: String(eventId).toUpperCase()
-        });
-        if (!event) return res.status(404).json({ message: 'Event not found' });
-
-        const expectedPasscode = role === 'crowd' ? event.passcodes?.crowd : event.passcodes?.observer;
-        if (!expectedPasscode || expectedPasscode !== accessCode) {
-          return res.status(401).json({ message: 'Invalid event passcode' });
-        }
-
-        const pseudoEmail = `${role}.${event.eventId}@crowd.local`;
-        let user = await User.findOne({ email: pseudoEmail });
-        if (!user) {
-          user = await User.create({
-            name: `${role.toUpperCase()} ${event.eventId}`,
-            email: pseudoEmail,
-            password: `${role}-${event.eventId}-access`,
-            role
-          });
-        }
-
-        user.lastLogin = new Date();
-        await user.save();
-        return res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          eventId: event.eventId,
-          token: generateToken(user._id)
-        });
-      }
-
-      // Global passcode flow for admin and staff.
-      if ((role === 'admin' || role === 'staff') && accessCode) {
-        const requiredPasscode = role === 'admin'
-          ? process.env.ADMIN_GLOBAL_PASSCODE
-          : process.env.STAFF_GLOBAL_PASSCODE;
-        if (!requiredPasscode || requiredPasscode !== accessCode) {
-          return res.status(401).json({ message: 'Invalid global passcode' });
-        }
-
-        const seededEmail = role === 'admin'
-          ? (process.env.ADMIN_EMAIL || 'admin@crowdintelligence.com')
-          : (process.env.STAFF_EMAIL || 'staff@crowdintelligence.com');
-        let user = await User.findOne({ email: seededEmail });
-        if (!user) {
-          user = await User.create({
-            name: role === 'admin' ? 'Admin User' : 'Staff User',
-            email: seededEmail,
-            password: role === 'admin'
-              ? (process.env.ADMIN_PASSWORD || 'admin12345')
-              : (process.env.STAFF_PASSWORD || 'staff12345'),
-            role
-          });
-        }
-
-        user.role = role;
-        user.lastLogin = new Date();
-        await user.save();
-        return res.json({
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          token: generateToken(user._id)
-        });
-      }
-
-      // Fallback credential flow.
+      // Credential-based login flow for user and staff roles.
       if (!email || !password) {
         return res.status(400).json({ message: 'email and password are required' });
       }

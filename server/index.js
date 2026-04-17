@@ -49,7 +49,6 @@ const io = new Server(httpServer, {
 const adminNamespace = io.of('/admin');
 const publicNamespace = io.of('/public');
 const staffNamespace = io.of('/staff');
-const crowdNamespace = io.of('/crowd');
 
 // Connect to MongoDB and seed defaults when available.
 const connectedToDb = await connectDB();
@@ -70,7 +69,6 @@ app.use((req, res, next) => {
     adminNamespace.to(room).emit(eventName, payload);
     publicNamespace.to(room).emit(eventName, payload);
     staffNamespace.to(room).emit(eventName, payload);
-    crowdNamespace.to(room).emit(eventName, payload);
   };
   next();
 });
@@ -197,7 +195,6 @@ registerNamespace(io);
 registerNamespace(adminNamespace);
 registerNamespace(publicNamespace);
 registerNamespace(staffNamespace);
-registerNamespace(crowdNamespace);
 
 // Global error handler
 app.use(errorHandler);

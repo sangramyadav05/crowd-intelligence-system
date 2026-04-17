@@ -90,7 +90,7 @@ export default function StaffDashboard() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Staff Portal</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Coordinator Portal</h1>
             <p className="text-gray-600 mt-2">Incident reporting, Q&A response, and live command feed.</p>
           </div>
           <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100">

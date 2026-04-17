@@ -7,27 +7,23 @@ import { useAuthStore } from '../store/authStore'
 export default function Login() {
   const [searchParams] = useSearchParams()
   const [formData, setFormData] = useState({
-    role: 'admin',
+    role: 'user',
     email: '',
-    password: '',
-    eventId: '',
-    accessCode: ''
+    password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
   useEffect(() => {
     const role = searchParams.get('role')
-    if (role && ['admin', 'staff', 'crowd', 'observer'].includes(role)) {
+    if (role && ['user', 'staff'].includes(role)) {
       setFormData((prev) => ({ ...prev, role }))
     }
   }, [searchParams])
 
   const roleOptions = [
-    { id: 'admin', label: 'Admin' },
-    { id: 'staff', label: 'Staff' },
-    { id: 'crowd', label: 'Crowd' },
-    { id: 'observer', label: 'Observer' }
+    { id: 'user', label: 'Crowd Manager' },
+    { id: 'staff', label: 'Coordinator' }
   ]
 
   const handleSubmit = async (e) => {
@@ -37,15 +33,11 @@ export default function Login() {
       const payload = {
         role: formData.role,
         email: formData.email,
-        password: formData.password,
-        eventId: formData.eventId?.trim(),
-        accessCode: formData.accessCode?.trim()
+        password: formData.password
       }
       const data = await login(payload)
-      if (data.role === 'admin') navigate('/admin')
+      if (data.role === 'user') navigate('/dashboard')
       else if (data.role === 'staff') navigate('/staff')
-      else if (data.role === 'crowd') navigate('/crowd')
-      else if (data.role === 'observer') navigate('/observer')
       else navigate('/dashboard')
     } catch (err) {
       // Error handled by store
@@ -102,47 +94,9 @@ export default function Login() {
               </div>
             </div>
 
-            {(formData.role === 'admin' || formData.role === 'staff') && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Global Passcode (optional)</label>
-                <input
-                  type="text"
-                  value={formData.accessCode}
-                  onChange={(e) => setFormData({ ...formData, accessCode: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
-                  placeholder="Enter global role passcode"
-                />
-              </div>
-            )}
 
-            {(formData.role === 'crowd' || formData.role === 'observer') && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Event ID</label>
-                  <input
-                    type="text"
-                    value={formData.eventId}
-                    onChange={(e) => setFormData({ ...formData, eventId: e.target.value.toUpperCase() })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
-                    placeholder="EVT-XXXXXX"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Passcode</label>
-                  <input
-                    type="text"
-                    value={formData.accessCode}
-                    onChange={(e) => setFormData({ ...formData, accessCode: e.target.value.toUpperCase() })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
-                    placeholder="Crowd/Observer passcode"
-                    required
-                  />
-                </div>
-              </>
-            )}
 
-            {(formData.role === 'admin' || formData.role === 'staff' || formData.role === 'user') && (
+            {(formData.role === 'user' || formData.role === 'staff') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <div className="relative">
@@ -158,7 +112,7 @@ export default function Login() {
             </div>
             )}
 
-            {(formData.role === 'admin' || formData.role === 'staff' || formData.role === 'user') && (
+            {(formData.role === 'user' || formData.role === 'staff') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">

@@ -12,7 +12,6 @@ export default function Navbar() {
 
   const isAdmin = user?.role === 'admin'
   const isStaff = user?.role === 'staff'
-  const isCrowd = user?.role === 'crowd' || user?.role === 'observer'
 
   const handleLogout = () => {
     logout()
@@ -32,12 +31,8 @@ export default function Navbar() {
         ]
       : isStaff
       ? [
-          { name: 'Staff Portal', href: '/staff', icon: Shield },
+          { name: 'Coordinator Portal', href: '/staff', icon: Shield },
           { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        ]
-      : isCrowd
-      ? [
-          { name: user?.role === 'observer' ? 'Observer View' : 'Crowd View', href: user?.role === 'observer' ? '/observer' : '/crowd', icon: Eye },
         ]
       : [
           { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },

@@ -15,8 +15,6 @@ import CreateEvent from './pages/CreateEvent'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import StaffRoute from './components/StaffRoute'
-import CrowdRoute from './components/CrowdRoute'
-import ObserverRoute from './components/ObserverRoute'
 import { useAuthStore } from './store/authStore'
 import { useEffect } from 'react'
 
@@ -69,20 +67,6 @@ function App() {
             <StaffRoute>
               <StaffDashboard />
             </StaffRoute>
-          } />
-
-          {/* Crowd Routes */}
-          <Route path="/crowd" element={
-            <CrowdRoute>
-              <PublicView />
-            </CrowdRoute>
-          } />
-
-          {/* Observer Routes */}
-          <Route path="/observer" element={
-            <ObserverRoute>
-              <PublicView />
-            </ObserverRoute>
           } />
         </Routes>
       </AnimatePresence>
