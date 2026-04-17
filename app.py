@@ -5,6 +5,11 @@ app = Flask(__name__)
 
 
 @app.route("/")
+def home():
+    return "Crowd Intelligence System is running."
+
+
+@app.route("/login")
 def login():
     return render_template("login.html")
 
