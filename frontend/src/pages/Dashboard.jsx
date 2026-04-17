@@ -10,7 +10,8 @@ const zoneLabels = {
 
 function Dashboard() {
   const [crowdData, setCrowdData] = useState(null)
-  const [status, setStatus] = useState('Waiting for live data...')
+  const [isLoading, setIsLoading] = useState(true)
+  const [status, setStatus] = useState('Loading live crowd data...')
 
   useEffect(() => {
     let isMounted = true
@@ -24,20 +25,24 @@ function Dashboard() {
         }
 
         setCrowdData(data)
-        setStatus('Live API connection established.')
+        setIsLoading(false)
+        setStatus('Live data refreshes every 2 seconds.')
       } catch (error) {
         if (!isMounted) {
           return
         }
 
+        setIsLoading(false)
         setStatus('Waiting for live data...')
       }
     }
 
     loadCrowdData()
+    const intervalId = setInterval(loadCrowdData, 2000)
 
     return () => {
       isMounted = false
+      clearInterval(intervalId)
     }
   }, [])
 
@@ -62,7 +67,7 @@ function Dashboard() {
                 <ZoneCard
                   key={key}
                   label={label}
-                  value={crowdData ? crowdData[key] : '--'}
+                  value={isLoading ? 'Loading...' : crowdData?.[key] ?? '--'}
                 />
               ))}
             </div>
