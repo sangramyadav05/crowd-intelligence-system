@@ -3,9 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
+    <title>Crowd Intelligence System | Dashboard</title>
   </head>
   <body>
-    <h1>Dashboard</h1>
+    <main>
+      <h1>Dashboard</h1>
+      <p>Welcome, {{ user_email }}.</p>
+      <p><a href="{{ url_for('create_event') }}">Create Event</a></p>
+      <section>
+        <h2>Your Events</h2>
+        {% if events %}
+        <ul>
+          {% for event in events %}
+          <li>
+            {{ event["name"] }} - {{ event["event_code"] }}
+            <a href="{{ url_for('event_detail', event_id=event['id']) }}">Manage</a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p>No events created yet.</p>
+        {% endif %}
+      </section>
+    </main>
   </body>
 </html>

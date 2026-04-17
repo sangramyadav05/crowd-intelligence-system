@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crowd Intelligence System | Public View</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f6f7fb;
+        color: #172033;
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .zone-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: 24px;
+      }
+
+      .zone-card {
+        background: #ffffff;
+        border: 1px solid #d8deea;
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-safe {
+        background: #dff7e7;
+        color: #146c2e;
+      }
+
+      .status-busy {
+        background: #fff2db;
+        color: #9a5b00;
+      }
+
+      .status-avoid {
+        background: #ffe0e0;
+        color: #b42318;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>{{ event["name"] }}</h1>
+      <p>Event Code: {{ event["event_code"] }}</p>
+
+      <section>
+        <h2>Live Zone Status</h2>
+        <div id="zones-container" class="zone-grid"></div>
+        <p id="zones-empty">No zones available yet.</p>
+      </section>
+    </main>
+
+    <script>
+      const eventId = {{ event["id"] }};
+      const zonesContainer = document.getElementById("zones-container");
+      const emptyMessage = document.getElementById("zones-empty");
+
+      function getZoneStatus(currentCount, capacity) {
+        const ratio = capacity === 0 ? 0 : currentCount / capacity;
+
+        if (ratio >= 0.8) {
+          return { label: "Avoid", className: "status-avoid" };
+        }
+
+        if (ratio >= 0.5) {
+          return { label: "Busy", className: "status-busy" };
+        }
+
+        return { label: "Safe", className: "status-safe" };
+      }
+
+      function renderZones(zones) {
+        zonesContainer.innerHTML = "";
+
+        if (!zones.length) {
+          emptyMessage.style.display = "block";
+          return;
+        }
+
+        emptyMessage.style.display = "none";
+
+        zones.forEach((zone) => {
+          const status = getZoneStatus(zone.current_count, zone.capacity);
+          const zoneCard = document.createElement("article");
+
+          zoneCard.className = "zone-card";
+          zoneCard.innerHTML = `
+            <h3>${zone.zone_name}</h3>
+            <p>Status: <span class="status ${status.className}">${status.label}</span></p>
+            <p>Live Count: ${zone.current_count}</p>
+            <p>Capacity: ${zone.capacity}</p>
+          `;
+
+          zonesContainer.appendChild(zoneCard);
+        });
+      }
+
+      async function refreshZones() {
+        const response = await fetch(`/api/public_zones/${eventId}`);
+        const data = await response.json();
+        renderZones(data.zones || []);
+      }
+
+      refreshZones();
+      setInterval(refreshZones, 3000);
+    </script>
+  </body>
+</html>
