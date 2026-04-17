@@ -7,30 +7,40 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main class="stack">
-      <section class="card">
-        <h1 class="page-title">Organizer Dashboard</h1>
-        <p class="page-subtitle">Monitor your events, manage zones, and review live crowd alerts.</p>
-        <p>Welcome, {{ user_email }}.</p>
-        <p><a class="button-link" href="{{ url_for('create_event') }}">Create Event</a></p>
+    <main class="stack shell">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Operations Console</span>
+          <h1 class="page-title">Organizer Dashboard</h1>
+          <p class="page-subtitle">
+            Monitor active events, manage zone capacity, and track crowd alerts from one
+            operational view.
+          </p>
+        </div>
+        <a class="button-link" href="{{ url_for('create_event') }}">Create Event</a>
       </section>
 
       <section class="card">
-        <h2>Your Events</h2>
+        <h2 class="section-title">Your Events</h2>
+        <p class="section-copy">Welcome, {{ user_email }}. Use event codes to share public access and manage venue zones.</p>
         {% if events %}
         <div class="event-list">
           {% for event in events %}
-          <div class="event-row">
+          <article class="card">
+            <div class="event-row">
             <div>
-              <strong>{{ event["name"] }}</strong>
-              <p class="muted">Event Code: {{ event["event_code"] }}</p>
+              <strong class="metric">{{ event["name"] }}</strong>
+              <div class="detail-row">
+                <span class="detail-chip">Event Code: {{ event["event_code"] }}</span>
+              </div>
             </div>
             <a class="inline-link" href="{{ url_for('event_detail', event_id=event['id']) }}">Manage</a>
-          </div>
+            </div>
+          </article>
           {% endfor %}
         </div>
         {% else %}
-        <p class="muted">No events created yet.</p>
+        <p class="empty-state">No events created yet.</p>
         {% endif %}
       </section>
     </main>

@@ -7,18 +7,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main class="stack">
-      <section class="card">
-        <h1 class="page-title">Public Crowd Status View</h1>
-        <p class="page-subtitle">Use this page to understand live zone conditions before moving around the venue.</p>
-        <h2>{{ event["name"] }}</h2>
-        <p>Event Code: {{ event["event_code"] }}</p>
+    <main class="stack shell">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Public Guidance</span>
+          <h1 class="page-title">Public Crowd Status View</h1>
+          <p class="page-subtitle">
+            Check zone conditions before moving through the venue. Statuses refresh every 3
+            seconds for a live crowd overview.
+          </p>
+        </div>
       </section>
 
       <section class="card">
-        <h2>Live Zone Status</h2>
+        <h2>{{ event["name"] }}</h2>
+        <div class="detail-row">
+          <span class="detail-chip">Event Code: {{ event["event_code"] }}</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">Live Zone Status</h2>
+        <p class="section-copy">
+          Green means safe to enter, orange means busy, and red means avoid if possible.
+        </p>
         <div id="zones-container" class="zone-grid"></div>
-        <p id="zones-empty" class="muted">No zones available yet.</p>
+        <p id="zones-empty" class="empty-state">No zones available yet.</p>
       </section>
     </main>
 
@@ -49,8 +63,11 @@
                 ${zone.public_status}
               </span>
             </p>
-            <p>Live Count: ${zone.current_count}</p>
-            <p>Capacity: ${zone.capacity}</p>
+            <div class="detail-row">
+              <span class="detail-chip">Live Count: ${zone.current_count}</span>
+              <span class="detail-chip">Capacity: ${zone.capacity}</span>
+            </div>
+            <p class="alert-text">Public guidance: ${zone.public_status}</p>
           `;
 
           zonesContainer.appendChild(zoneCard);

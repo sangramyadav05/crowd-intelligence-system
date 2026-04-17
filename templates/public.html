@@ -4,15 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crowd Intelligence System | Public Access</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main>
-      <h1>Public Event Access</h1>
+    <main class="shell">
+      <span class="eyebrow">Guest Access</span>
+      <h1 class="page-title">Public Event Access</h1>
+      <p class="page-subtitle">
+        Enter an event code to view live zone crowd conditions and make safer movement
+        decisions.
+      </p>
       {% if error %}
-      <p>{{ error }}</p>
+      <p class="notice">{{ error }}</p>
       {% endif %}
       <form method="post">
-        <div>
+        <div class="field">
           <label for="event_code">Event Code</label>
           <input
             id="event_code"

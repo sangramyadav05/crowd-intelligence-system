@@ -7,19 +7,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
   </head>
   <body>
-    <main class="stack">
-      <section class="card">
-        <h1 class="page-title">Organizer Event Control Panel</h1>
-        <p class="page-subtitle">Track live occupancy, review alert severity, and manage zones for this event.</p>
-        <h2>{{ event["name"] }}</h2>
-        <p>Event Code: {{ event["event_code"] }}</p>
-        <p><a class="button-link" href="{{ url_for('add_zone', event_id=event['id']) }}">Add Zone</a></p>
+    <main class="stack shell">
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Event Control</span>
+          <h1 class="page-title">Organizer Event Control Panel</h1>
+          <p class="page-subtitle">
+            Track live occupancy, review alert severity, and make better crowd management
+            decisions for this event.
+          </p>
+        </div>
+        <a class="button-link" href="{{ url_for('add_zone', event_id=event['id']) }}">Add Zone</a>
       </section>
 
       <section class="card">
-        <h2>Zone Alerts</h2>
+        <h2>{{ event["name"] }}</h2>
+        <div class="detail-row">
+          <span class="detail-chip">Event Code: {{ event["event_code"] }}</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="section-title">Zone Alerts</h2>
+        <p class="section-copy">
+          Alerts update every 3 seconds. Red requires immediate intervention, orange
+          indicates rising pressure, and green remains safe.
+        </p>
         <div id="zones-container" class="zone-grid"></div>
-        <p id="zones-empty" class="muted">No zones added yet.</p>
+        <p id="zones-empty" class="empty-state">No zones added yet.</p>
       </section>
 
       <p><a class="inline-link" href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
@@ -46,14 +61,17 @@
           zoneCard.className = "card";
           zoneCard.innerHTML = `
             <h3>${zone.zone_name}</h3>
-            <p>Current Count: ${zone.current_count}</p>
-            <p>Capacity: ${zone.capacity}</p>
+            <div class="detail-row">
+              <span class="detail-chip">Current Count: ${zone.current_count}</span>
+              <span class="detail-chip">Capacity: ${zone.capacity}</span>
+            </div>
             <p>
               Alert:
               <span class="status-badge status-${zone.organizer_color}">
                 ${zone.organizer_alert}
               </span>
             </p>
+            <p class="alert-text">System assessment: ${zone.organizer_alert}</p>
           `;
 
           zonesContainer.appendChild(zoneCard);
