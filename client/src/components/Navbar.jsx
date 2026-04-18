@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Menu, X, LogOut, LayoutDashboard, Eye, UserCircle, Shield } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
+import crowdIntelLogo from '../assets/crowdintel-logo.png'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -50,9 +51,11 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-              <Users className="w-5 h-5 text-white" />
-            </div>
+            <img
+              src={crowdIntelLogo}
+              alt="CrowdIntel logo"
+              className="h-10 w-10 rounded-xl object-cover shadow-[0_0_18px_rgba(59,130,246,0.28)]"
+            />
             <span className="font-bold text-xl text-white font-display tracking-wide">Crowd<span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-purple">Intel</span></span>
           </Link>
 
