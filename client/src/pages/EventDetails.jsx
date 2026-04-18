@@ -312,10 +312,10 @@ export default function EventDetails() {
   }
 
   const getSeatColor = (status) => {
-    if (status === 'occupied') return 'bg-red-500/10 border-red-500/200'
-    if (status === 'blocked') return 'bg-gray-700'
-    if (status === 'redirect') return 'bg-orange-500/10 border-orange-500/200/10 border-orange-500/200'
-    return 'bg-emerald-500/100/10 border-emerald-500/200'
+    if (status === 'occupied') return 'border border-rose-500/40 bg-rose-500/20 text-rose-100 shadow-[inset_0_0_0_1px_rgba(244,63,94,0.08)]'
+    if (status === 'blocked') return 'border border-slate-500/50 bg-slate-600 text-white shadow-[inset_0_0_0_1px_rgba(148,163,184,0.12)]'
+    if (status === 'redirect') return 'border border-amber-500/40 bg-amber-500/20 text-amber-100 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.08)]'
+    return 'border border-emerald-500/40 bg-emerald-500/20 text-emerald-50 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.08)]'
   }
 
   const getZoneStatus = (capacity, currentCount) => {
@@ -937,7 +937,7 @@ export default function EventDetails() {
               <select
                 value={seatStatusUpdate.zoneId}
                 onChange={(e) => setSeatStatusUpdate((prev) => ({ ...prev, zoneId: e.target.value }))}
-                className="px-3 py-2 border border-slate-700 rounded-lg"
+                className="px-4 py-2.5 border border-slate-700 rounded-lg bg-slate-900/80 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
               >
                 <option value="">Select zone</option>
                 {seatingLayout?.zones?.map((zone) => (
@@ -947,13 +947,13 @@ export default function EventDetails() {
               <input
                 value={seatStatusUpdate.seatId}
                 onChange={(e) => setSeatStatusUpdate((prev) => ({ ...prev, seatId: e.target.value }))}
-                className="px-3 py-2 border border-slate-700 rounded-lg"
+                className="px-4 py-2.5 border border-slate-700 rounded-lg bg-slate-900/80 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
                 placeholder="Seat ID"
               />
               <select
                 value={seatStatusUpdate.status}
                 onChange={(e) => setSeatStatusUpdate((prev) => ({ ...prev, status: e.target.value }))}
-                className="px-3 py-2 border border-slate-700 rounded-lg"
+                className="px-4 py-2.5 border border-slate-700 rounded-lg bg-slate-900/80 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
               >
                 {['available', 'occupied', 'blocked', 'redirect'].map((status) => (
                   <option key={status} value={status}>{status}</option>
@@ -970,7 +970,7 @@ export default function EventDetails() {
                 <select
                   value={selectedSeatingZone}
                   onChange={(e) => setSelectedSeatingZone(e.target.value)}
-                  className="px-3 py-2 border border-slate-700 rounded-lg text-sm"
+                  className="px-4 py-2.5 border border-slate-700 rounded-lg text-sm bg-slate-900/80 text-slate-100 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
                 >
                   {seatingLayout?.zones?.map((zone) => (
                     <option key={zone.zoneId} value={zone.zoneId}>{zone.name}</option>
@@ -979,10 +979,10 @@ export default function EventDetails() {
               </div>
 
               <div className="flex items-center gap-4 text-xs text-slate-400 mb-3">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500/100/10 border-emerald-500/200 inline-block" />Available</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500/10 border-red-500/200 inline-block" />Occupied</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-700 inline-block" />Blocked</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-500/10 border-orange-500/200/10 border-orange-500/200 inline-block" />Redirect</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded border border-emerald-500/40 bg-emerald-500/20" />Available</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded border border-rose-500/40 bg-rose-500/20" />Occupied</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded border border-slate-400/50 bg-slate-600" />Blocked</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded border border-amber-500/40 bg-amber-500/20" />Redirect</span>
               </div>
 
               <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-xl max-h-80 overflow-auto">
@@ -1025,14 +1025,14 @@ export default function EventDetails() {
                 type="number"
                 value={geoPoint.x}
                 onChange={(e) => setGeoPoint((prev) => ({ ...prev, x: Number(e.target.value) }))}
-                className="px-3 py-2 border border-slate-700 rounded-lg"
+                className="px-4 py-2.5 border border-slate-700 rounded-lg bg-slate-900/80 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
                 placeholder="X coordinate"
               />
               <input
                 type="number"
                 value={geoPoint.y}
                 onChange={(e) => setGeoPoint((prev) => ({ ...prev, y: Number(e.target.value) }))}
-                className="px-3 py-2 border border-slate-700 rounded-lg"
+                className="px-4 py-2.5 border border-slate-700 rounded-lg bg-slate-900/80 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-cyan/25 focus:border-accent-cyan/40"
                 placeholder="Y coordinate"
               />
               <button
@@ -1047,11 +1047,11 @@ export default function EventDetails() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-emerald-500/100/10 border-emerald-500/20 border border-emerald-500/30">
                   <p className="text-sm text-emerald-400 font-medium">Nearest Entry</p>
-                  <p className="text-lg font-semibold text-green-900">{nearestRoute.nearestEntry?.name}</p>
+                  <p className="text-lg font-semibold text-white">{nearestRoute.nearestEntry?.name}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-accent-cyan/10 border-accent-cyan/20 border border-accent-cyan/30">
                   <p className="text-sm text-accent-cyan font-medium">Nearest Exit</p>
-                  <p className="text-lg font-semibold text-blue-900">{nearestRoute.nearestExit?.name}</p>
+                  <p className="text-lg font-semibold text-white">{nearestRoute.nearestExit?.name}</p>
                 </div>
               </div>
             )}
