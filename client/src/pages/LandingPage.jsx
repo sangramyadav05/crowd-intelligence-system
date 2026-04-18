@@ -62,9 +62,15 @@ export default function LandingPage() {
   return (
     <div className="pt-16 bg-slate-950 text-slate-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-transparent">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      <section className="relative overflow-hidden bg-slate-950">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.18] mix-blend-luminosity"
+          style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+        />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/80 to-slate-950" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <motion.div
@@ -118,10 +124,10 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {[
-                { value: '500+', label: 'Events Managed' },
-                { value: '2M+', label: 'People Monitored' },
-                { value: '99.9%', label: 'Uptime' },
-                { value: '15min', label: 'Prediction Window' }
+                { value: 'Live', label: 'Zone Monitoring' },
+                { value: 'Blueprint', label: 'Venue Heatmaps' },
+                { value: 'Role-Based', label: 'Access Control' },
+                { value: '15-30 min', label: 'Prediction Window' }
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}
@@ -129,8 +135,8 @@ export default function LandingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-white">{stat.value}</div>
-                  <div className="text-primary-200 text-sm mt-1">{stat.label}</div>
+                  <div className="text-2xl md:text-3xl font-semibold text-slate-200">{stat.value}</div>
+                  <div className="text-slate-400 text-sm mt-1">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
