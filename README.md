@@ -1,179 +1,97 @@
-# Crowd Intelligence System
+# CrowdIntel
 
-AI-powered crowd management platform for real-time monitoring, prediction, and control of crowd density at events and venues.
+CrowdIntel is a crowd monitoring and crowd management project for events and venues.  
+It helps organizers create events, divide them into zones, watch live crowd movement, predict possible crowd pressure, and share safer public guidance.
 
-## Features
+## What this project can do
 
-- **Real-time Crowd Monitoring**: Track crowd density across multiple zones
-- **AI-Powered Predictions**: Machine learning predicts crowd surges 15-30 minutes ahead
-- **Smart Alerts**: Automated notifications for overcrowding and anomalies
-- **Public View**: Share live crowd status with attendees via unique event codes
-- **Admin Dashboard**: System-wide monitoring and management
-- **Mobile Responsive**: Works seamlessly on desktop and mobile devices
+- create and manage events
+- define zones with capacities
+- show live zone status
+- generate crowd alerts and simple AI-style predictions
+- give coordinators event-specific access
+- give the public a separate event code for live status
+- show venue blueprints as heatmaps in both surveillance and public view
 
-## Tech Stack
-
-### Backend
-- Node.js + Express
-- MongoDB + Mongoose
-- Socket.io (real-time updates)
-- JWT Authentication
-- AI Simulation Service
+## Tech used
 
 ### Frontend
-- React + Vite
+
+- React
+- Vite
 - Tailwind CSS
-- Framer Motion (animations)
-- Zustand (state management)
-- Recharts (data visualization)
+- Framer Motion
 
-## Quick Start
+### Backend
 
-### Prerequisites
-- Node.js (v18+)
-- MongoDB (local or Atlas)
+- Node.js
+- Express
+- MongoDB with Mongoose
+- Socket.IO
 
-### Installation
+## Quick start
 
-1. Clone the repository:
-```bash
-git clone <repo-url>
-cd crowd-intelligence-system
-```
+### 1. Install dependencies
 
-2. Install dependencies:
 ```bash
 npm run install-all
 ```
 
-3. Set up environment variables:
-```bash
-# Server
-cd server
-cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
+### 2. Add environment files
 
-# Client
-cd ../client
-cp .env.example .env.local
+Inside `server/.env`:
+
+```env
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/crowd_intelligence
+JWT_SECRET=your-secret
+ADMIN_EMAIL=admin@crowdintelligence.com
+ADMIN_PASSWORD=admin12345
+NODE_ENV=development
 ```
 
-4. Start MongoDB (if running locally):
-```bash
-mongod
+Inside `client/.env`:
+
+```env
+VITE_API_URL=http://localhost:5002/api
+VITE_SOCKET_URL=http://localhost:5002
 ```
 
-5. Run the application:
+Important: make sure the client points to the same backend port you are actually running.
+
+### 3. Start MongoDB
+
+Run MongoDB locally, or use an Atlas connection string in the server env.
+
+### 4. Run the app
+
 ```bash
-# From root directory
 npm run dev
 ```
 
-This starts both the server (port 5000) and client (port 5173).
+You can also run the client and server separately from their own folders if needed.
 
-### Default Login Credentials
+## Default access
 
-**Admin:**
-- Email: admin@crowdintelligence.com
-- Password: admin123
+- Admin login comes from the seeded setup in the server
+- Crowd managers register from the app
+- Coordinators log in with the coordinator ID generated for each event
+- Public users use the public event code
 
-**User:**
-- Register a new account at `/register`
+## Project structure
 
-## Project Structure
+- `client/` contains the frontend
+- `server/` contains the API, database logic, and realtime updates
+- `docs/` contains short project notes and architecture notes
 
-```
-crowd-intelligence-system/
-├── server/
-│   ├── config/        # Database config
-│   ├── models/         # MongoDB models
-│   ├── routes/         # API routes
-│   ├── middleware/     # Auth & error handlers
-│   ├── services/       # AI simulation
-│   └── index.js        # Entry point
-├── client/
-│   ├── src/
-│   │   ├── components/ # Reusable components
-│   │   ├── pages/      # Page components
-│   │   ├── store/      # Zustand stores
-│   │   └── lib/        # API client
-│   └── index.html
-└── package.json
-```
+## Extra notes
 
-## API Endpoints
+This project is now more than a basic demo. It includes event-based access flow, blueprint-backed heatmaps, public view syncing, and real-time room updates across admin, staff, and public clients.
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - User login
-- `POST /api/auth/admin-login` - Admin login
-- `GET /api/auth/profile` - Get user profile
+It is still a practical prototype, not a full production surveillance platform, but the current version is solid and usable as a complete project.
 
-### Events
-- `GET /api/events` - Get user's events
-- `POST /api/events` - Create event
-- `GET /api/events/:id` - Get event details
-- `GET /api/events/:id/dashboard` - Get event dashboard with AI data
-- `POST /api/events/:id/zones` - Add zone
+## Docs
 
-### Crowd Data
-- `POST /api/crowd/update/:eventId` - Update crowd count
-- `POST /api/crowd/simulate/:eventId` - Run simulation
-- `POST /api/crowd/reset/:eventId` - Reset counts
-
-### AI
-- `GET /api/ai/predict/:eventId` - Get predictions
-- `GET /api/ai/anomalies/:eventId` - Detect anomalies
-- `GET /api/ai/recommendations/:eventId` - Get recommendations
-
-### Admin
-- `GET /api/admin/dashboard` - Admin dashboard stats
-- `GET /api/admin/events` - All events
-- `GET /api/admin/users` - All users
-- `GET /api/admin/alerts` - System alerts
-
-### Public
-- `POST /api/public/lookup` - Look up event by code
-- `GET /api/public/event/:id/status` - Get public event status
-
-## AI Features
-
-The AI service provides:
-- **Crowd Prediction**: Predicts crowd count 15-30 minutes ahead using trend analysis
-- **Anomaly Detection**: Identifies unusual crowd patterns and rapid surges
-- **Smart Recommendations**: Suggests crowd flow optimization strategies
-- **Risk Assessment**: Evaluates risk levels based on capacity and trends
-
-## Deployment
-
-### Backend (Heroku/Railway/Render)
-1. Set environment variables:
-   - `MONGODB_URI`
-   - `JWT_SECRET`
-   - `NODE_ENV=production`
-
-2. Deploy the `server` directory
-
-### Frontend (Vercel/Netlify)
-1. Build the client:
-```bash
-cd client
-npm run build
-```
-
-2. Deploy the `dist` folder
-
-3. Set environment variable:
-   - `VITE_API_URL` = your backend URL
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## License
-
-MIT License
+- [Project Documentation](docs/PROJECT_DOCUMENTATION.md)
+- [Setup Notes](docs/SETUP_NOTES.md)
+- [Architecture Notes](docs/ARCHITECTURE_NOTES.md)
