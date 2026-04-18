@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { Event, Alert } from '../models/index.js';
+import { Event, Alert, EventMessage } from '../models/index.js';
 import { protect, staffOrAdmin } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -14,6 +14,38 @@ const buildEventLookup = (identifier) => {
   return { $or: clauses };
 };
 
+const buildStaffEventScope = (user) => {
+  if (user?.role === 'admin') {
+    return {};
+  }
+
+  return { 'coordinators.userId': user?._id };
+};
+
+const findAccessibleEvent = (user, identifier) => {
+  const eventLookup = buildEventLookup(identifier);
+
+  if (user?.role === 'admin') {
+    return Event.findOne(eventLookup);
+  }
+
+  return Event.findOne({
+    $and: [
+      eventLookup,
+      { 'coordinators.userId': user?._id }
+    ]
+  });
+};
+
+const mapStaffFeedMessage = (message) => ({
+  id: message._id,
+  type: message.type,
+  text: message.text,
+  fromRole: message.fromRole,
+  by: message.from,
+  at: message.createdAt
+});
+
 router.use(protect, staffOrAdmin);
 
 // @route   GET /api/staff/events
@@ -21,10 +53,30 @@ router.use(protect, staffOrAdmin);
 // @access  Staff/Admin
 router.get('/events', async (req, res) => {
   try {
-    const events = await Event.find()
+    const events = await Event.find(buildStaffEventScope(req.user))
       .sort({ startTime: 1 })
       .select('eventId name startTime endTime zones emergencyState status accessCode');
     res.json(events);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   GET /api/staff/events/:id/feed
+// @desc    Get recent public questions and coordinator answers for an event
+// @access  Staff/Admin
+router.get('/events/:id/feed', async (req, res) => {
+  try {
+    const event = await findAccessibleEvent(req.user, req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found or not assigned to this coordinator' });
+    }
+
+    const messages = await EventMessage.find({ event: event._id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.json(messages.map(mapStaffFeedMessage));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -35,9 +87,9 @@ router.get('/events', async (req, res) => {
 // @access  Staff/Admin
 router.post('/events/:id/incidents', async (req, res) => {
   try {
-    const event = await Event.findOne(buildEventLookup(req.params.id));
+    const event = await findAccessibleEvent(req.user, req.params.id);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({ message: 'Event not found or not assigned to this coordinator' });
     }
 
     const { zoneId, message, severity = 'warning' } = req.body;
@@ -56,12 +108,6 @@ router.post('/events/:id/incidents', async (req, res) => {
     });
 
     const roomEventId = event.eventId || event._id.toString();
-    req.emitRealtime?.(roomEventId, 'gathering_question', {
-      eventId: roomEventId,
-      question: message.trim(),
-      fromRole: req.user.role,
-      zoneId: zoneId || 'general'
-    });
     req.emitRealtime?.(roomEventId, 'staff_incident_reported', {
       eventId: roomEventId,
       incident
@@ -78,9 +124,9 @@ router.post('/events/:id/incidents', async (req, res) => {
 // @access  Staff/Admin
 router.post('/events/:id/answers', async (req, res) => {
   try {
-    const event = await Event.findOne(buildEventLookup(req.params.id));
+    const event = await findAccessibleEvent(req.user, req.params.id);
     if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+      return res.status(404).json({ message: 'Event not found or not assigned to this coordinator' });
     }
 
     const { message, zoneId = null } = req.body;
@@ -89,13 +135,25 @@ router.post('/events/:id/answers', async (req, res) => {
     }
 
     const roomEventId = event.eventId || event._id.toString();
-    const payload = {
+    const eventMessage = await EventMessage.create({
+      event: event._id,
       eventId: roomEventId,
       zoneId,
-      answer: message.trim(),
+      type: 'answer',
+      text: message.trim(),
+      from: req.user.name,
+      fromRole: req.user.role,
+      createdBy: req.user._id
+    });
+
+    const payload = {
+      id: eventMessage._id,
+      eventId: roomEventId,
+      zoneId,
+      answer: eventMessage.text,
       by: req.user.name,
       role: req.user.role,
-      timestamp: new Date()
+      timestamp: eventMessage.createdAt
     };
     req.emitRealtime?.(roomEventId, 'gathering_answer', payload);
 

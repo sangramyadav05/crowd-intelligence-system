@@ -12,6 +12,31 @@ export default function StaffDashboard() {
   const [feed, setFeed] = useState([])
   const [connected, setConnected] = useState(false)
 
+  const mergeFeedItems = (current, incoming = [], limit = 20) => {
+    const items = [...incoming, ...current]
+    const seen = new Map()
+
+    items.forEach((item) => {
+      const key = item.id || `${item.type}-${item.text}-${item.at}`
+      if (!seen.has(key)) {
+        seen.set(key, item)
+      }
+    })
+
+    return Array.from(seen.values())
+      .sort((a, b) => new Date(b.at) - new Date(a.at))
+      .slice(0, limit)
+  }
+
+  const getFeedLabel = (item) => {
+    if (item.type === 'question') return 'Public Question'
+    if (item.type === 'answer') return 'Coordinator Answer'
+    if (item.type === 'incident') return 'Coordinator Incident'
+    if (item.type === 'instruction') return 'Live Instruction'
+    if (item.type?.startsWith('ops:')) return 'Operations Update'
+    return 'Live Update'
+  }
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -31,7 +56,13 @@ export default function StaffDashboard() {
     const onConnect = () => setConnected(true)
     const onDisconnect = () => setConnected(false)
     const onQuestion = (payload) => {
-      setFeed((prev) => [{ type: 'question', text: payload.question, at: new Date() }, ...prev].slice(0, 20))
+      setFeed((prev) => mergeFeedItems(prev, [{
+        id: payload.id,
+        type: 'question',
+        text: payload.question,
+        fromRole: payload.fromRole || 'crowd',
+        at: payload.timestamp || new Date()
+      }]))
     }
     const onInstruction = (payload) => {
       setFeed((prev) => [{ type: 'instruction', text: payload.command?.message || payload.message, at: new Date() }, ...prev].slice(0, 20))
@@ -57,8 +88,33 @@ export default function StaffDashboard() {
   }, [])
 
   useEffect(() => {
-    if (!selectedEventId) return
+    if (!selectedEventId || !connected) return
     joinEventRoom(staffSocket, selectedEventId)
+  }, [selectedEventId, connected])
+
+  useEffect(() => {
+    if (!selectedEventId) return undefined
+
+    let isMounted = true
+
+    const loadFeed = async () => {
+      try {
+        const { data } = await staffAPI.getFeed(selectedEventId)
+        if (isMounted) {
+          setFeed((prev) => mergeFeedItems(prev, data))
+        }
+      } catch (error) {
+        console.error('Unable to load coordinator feed:', error)
+      }
+    }
+
+    loadFeed()
+    const intervalId = setInterval(loadFeed, 3000)
+
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+    }
   }, [selectedEventId])
 
   const submitIncident = async (e) => {
@@ -77,8 +133,14 @@ export default function StaffDashboard() {
     e.preventDefault()
     if (!selectedEventId || !answer.trim()) return
     try {
-      await staffAPI.sendAnswer(selectedEventId, { message: answer.trim() })
-      setFeed((prev) => [{ type: 'answer', text: answer.trim(), at: new Date() }, ...prev].slice(0, 20))
+      const { data } = await staffAPI.sendAnswer(selectedEventId, { message: answer.trim() })
+      setFeed((prev) => mergeFeedItems(prev, [{
+        id: data.id,
+        type: 'answer',
+        text: data.answer,
+        fromRole: data.role,
+        at: data.timestamp || new Date()
+      }]))
       setAnswer('')
     } catch (error) {
       console.error('Unable to send answer:', error)
@@ -104,7 +166,7 @@ export default function StaffDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white font-display">Coordinator Portal</h1>
-            <p className="text-slate-400 mt-2">Incident reporting, Q&A response, and live command feed.</p>
+            <p className="text-slate-400 mt-2">Receive public questions, send answers, and stay on top of live event updates.</p>
           </div>
           <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700 shadow-inner">
             <Radio className={`w-4 h-4 ${connected ? 'text-emerald-400' : 'text-rose-400'}`} />
@@ -147,13 +209,13 @@ export default function StaffDashboard() {
         <motion.form variants={itemVariants} onSubmit={submitAnswer} className="bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
           <h2 className="font-semibold text-white mb-3 flex items-center space-x-2">
             <Send className="w-4 h-4 text-accent-cyan" />
-            <span>Send Crowd Answer</span>
+            <span>Reply to Public Question</span>
           </h2>
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg h-24 text-white placeholder-slate-500 outline-none focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan"
-            placeholder="Answer a public question..."
+            placeholder="Type the coordinator answer here..."
           />
           <button type="submit" className="mt-3 px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple text-white rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(6,182,212,0.3)] border-none">
             Broadcast
@@ -164,13 +226,13 @@ export default function StaffDashboard() {
       <div className="mt-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl p-4">
         <h2 className="font-semibold text-white mb-3 flex items-center space-x-2">
           <MessageSquare className="w-4 h-4 text-slate-400" />
-          <span>Live Feed</span>
+          <span>Public Questions and Live Feed</span>
         </h2>
         <div className="space-y-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
           {feed.length === 0 && <p className="text-sm text-slate-500">No live activity yet.</p>}
           {feed.map((item, index) => (
             <div key={`${item.type}-${index}`} className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg">
-              <p className="text-xs uppercase text-slate-500">{item.type}</p>
+              <p className="text-xs uppercase text-slate-500">{getFeedLabel(item)}</p>
               <p className="text-sm text-slate-200 mt-1">{item.text}</p>
             </div>
           ))}

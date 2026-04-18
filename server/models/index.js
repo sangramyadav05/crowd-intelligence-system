@@ -6,5 +6,6 @@ import Alert from './Alert.js';
 import SeatingLayout from './SeatingLayout.js';
 import VenuePlan from './VenuePlan.js';
 import OperationUpdate from './OperationUpdate.js';
+import EventMessage from './EventMessage.js';
 
-export { User, Event, CrowdData, Prediction, Alert, SeatingLayout, VenuePlan, OperationUpdate };
+export { User, Event, CrowdData, Prediction, Alert, SeatingLayout, VenuePlan, OperationUpdate, EventMessage };

@@ -1,8 +1,17 @@
 import express from 'express';
-import { Event, CrowdData, Alert } from '../models/index.js';
+import { Event, CrowdData, Alert, EventMessage } from '../models/index.js';
 import aiService from '../services/ai.service.js';
 
 const router = express.Router();
+
+const mapPublicFeedMessage = (message) => ({
+  id: message._id,
+  type: message.type,
+  text: message.text,
+  byRole: message.fromRole,
+  by: message.from,
+  at: message.createdAt
+});
 
 // @route   POST /api/public/lookup
 // @desc    Look up event by access code
@@ -169,16 +178,50 @@ router.post('/event/:id/questions', async (req, res) => {
     }
 
     const roomEventId = event.eventId || event._id.toString();
-    const payload = {
+    const eventMessage = await EventMessage.create({
+      event: event._id,
       eventId: roomEventId,
       zoneId,
-      question: message.trim(),
+      type: 'question',
+      text: message.trim(),
       from,
-      timestamp: new Date()
+      fromRole: 'crowd'
+    });
+
+    const payload = {
+      id: eventMessage._id,
+      eventId: roomEventId,
+      zoneId,
+      question: eventMessage.text,
+      from,
+      timestamp: eventMessage.createdAt
     };
 
     req.emitRealtime?.(roomEventId, 'gathering_question', payload);
     res.status(201).json(payload);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   GET /api/public/event/:id/feed
+// @desc    Get recent coordinator answers for public view
+// @access  Public
+router.get('/event/:id/feed', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event || !event.isPublic) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const messages = await EventMessage.find({
+      event: event._id,
+      type: 'answer'
+    })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json(messages.map(mapPublicFeedMessage));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

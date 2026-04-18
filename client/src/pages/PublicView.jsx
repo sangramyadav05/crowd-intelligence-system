@@ -20,6 +20,31 @@ export default function PublicView() {
   const [venuePlan, setVenuePlan] = useState(null)
   const [selectedHeatmapZoneId, setSelectedHeatmapZoneId] = useState('')
 
+  const mergeLiveFeedItems = (current, incoming = [], limit = 10) => {
+    const items = [...incoming, ...current]
+    const seen = new Map()
+
+    items.forEach((item) => {
+      const key = item.id || `${item.type}-${item.text}-${item.at}`
+      if (!seen.has(key)) {
+        seen.set(key, item)
+      }
+    })
+
+    return Array.from(seen.values())
+      .sort((a, b) => new Date(b.at) - new Date(a.at))
+      .slice(0, limit)
+  }
+
+  const getLiveFeedLabel = (item) => {
+    if (item.type === 'question') return 'Your Question'
+    if (item.type === 'answer') return item.byRole === 'admin' ? 'Admin Answer' : 'Coordinator Answer'
+    if (item.type === 'instruction') return 'Live Instruction'
+    if (item.type?.startsWith('ops:')) return 'Operations Update'
+    if (item.type?.startsWith('notice:')) return 'Safety Notice'
+    return 'Live Update'
+  }
+
   const handleLookup = async (e) => {
     e.preventDefault()
     setIsLoading(true)
@@ -101,8 +126,14 @@ export default function PublicView() {
   useEffect(() => {
     if (!eventData?.event?._id) return undefined
 
+    const roomEventId = eventData.event.eventId || eventData.event._id
+    const joinCurrentEventRoom = () => joinEventRoom(publicSocket, roomEventId)
+
     publicSocket.connect()
-    joinEventRoom(publicSocket, eventData.event.eventId || eventData.event._id)
+    publicSocket.on('connect', joinCurrentEventRoom)
+    if (publicSocket.connected) {
+      joinCurrentEventRoom()
+    }
 
     const onDensityUpdate = (payload) => {
       if (payload?.reset) {
@@ -141,7 +172,13 @@ export default function PublicView() {
     }
 
     const onAnswer = (payload) => {
-      setLiveFeed((prev) => [{ type: 'answer', text: payload.answer, at: new Date() }, ...prev].slice(0, 10))
+      setLiveFeed((prev) => mergeLiveFeedItems(prev, [{
+        id: payload.id,
+        type: 'answer',
+        text: payload.answer,
+        byRole: payload.role,
+        at: payload.timestamp || new Date()
+      }]))
     }
 
     const onOperationsUpdate = (payload) => {
@@ -173,6 +210,7 @@ export default function PublicView() {
     publicSocket.on('notifications', onNotification)
 
     return () => {
+      publicSocket.off('connect', joinCurrentEventRoom)
       publicSocket.off('density_update', onDensityUpdate)
       publicSocket.off('gathering_instruction', onInstruction)
       publicSocket.off('gathering_answer', onAnswer)
@@ -180,6 +218,31 @@ export default function PublicView() {
       publicSocket.off('zone_intelligence_update', onZoneIntel)
       publicSocket.off('notifications', onNotification)
       publicSocket.disconnect()
+    }
+  }, [eventData?.event?._id, eventData?.event?.eventId])
+
+  useEffect(() => {
+    if (!eventData?.event?._id) return undefined
+
+    let isMounted = true
+
+    const loadFeed = async () => {
+      try {
+        const { data } = await publicAPI.getFeed(eventData.event._id)
+        if (isMounted) {
+          setLiveFeed((prev) => mergeLiveFeedItems(prev, data))
+        }
+      } catch (error) {
+        console.error('Unable to load public feed:', error)
+      }
+    }
+
+    loadFeed()
+    const intervalId = setInterval(loadFeed, 3000)
+
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
     }
   }, [eventData?.event?._id])
 
@@ -228,8 +291,13 @@ export default function PublicView() {
     e.preventDefault()
     if (!question.trim() || !eventData?.event?._id) return
     try {
-      await publicAPI.askQuestion(eventData.event._id, { message: question.trim(), from: 'crowd' })
-      setLiveFeed((prev) => [{ type: 'question', text: question.trim(), at: new Date() }, ...prev].slice(0, 10))
+      const { data } = await publicAPI.askQuestion(eventData.event._id, { message: question.trim(), from: 'crowd' })
+      setLiveFeed((prev) => mergeLiveFeedItems(prev, [{
+        id: data.id,
+        type: 'question',
+        text: data.question,
+        at: data.timestamp || new Date()
+      }]))
       setQuestion('')
     } catch (err) {
       console.error('Unable to submit question', err)
@@ -586,7 +654,7 @@ export default function PublicView() {
               <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-lg p-6">
                 <h2 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
                   <MessageSquare className="w-5 h-5" />
-                  <span>Crowd Q&A and Live Feed</span>
+                  <span>Ask Coordinator and Live Feed</span>
                 </h2>
                 <form onSubmit={submitQuestion} className="flex gap-2 mb-4">
                   <input
@@ -594,7 +662,7 @@ export default function PublicView() {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     className="flex-1 px-3 py-2 border border-slate-700 bg-slate-800/50 text-white placeholder:text-slate-500 rounded-lg"
-                    placeholder="Ask staff a question..."
+                    placeholder="Ask coordinator a question..."
                   />
                   <button type="submit" className="px-4 py-2 bg-gradient-to-r from-accent-cyan to-accent-purple border-none shadow-[0_0_10px_rgba(6,182,212,0.3)] text-white rounded-lg hover:scale-[1.02] transition-transform">
                     Send
@@ -606,7 +674,7 @@ export default function PublicView() {
                   )}
                   {liveFeed.map((item, idx) => (
                     <div key={`${item.type}-${idx}`} className="p-3 rounded-lg bg-slate-800/50">
-                      <p className="text-sm font-medium capitalize text-slate-300">{item.type}</p>
+                      <p className="text-sm font-medium text-slate-300">{getLiveFeedLabel(item)}</p>
                       <p className="text-sm text-white">{item.text}</p>
                     </div>
                   ))}

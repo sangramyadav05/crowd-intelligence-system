@@ -69,6 +69,7 @@ export const adminAPI = {
 // Staff APIs
 export const staffAPI = {
   getEvents: () => api.get('/staff/events'),
+  getFeed: (eventId) => api.get(`/staff/events/${eventId}/feed`),
   reportIncident: (eventId, data) => api.post(`/staff/events/${eventId}/incidents`, data),
   sendAnswer: (eventId, data) => api.post(`/staff/events/${eventId}/answers`, data)
 }
@@ -105,6 +106,7 @@ export const operationsAPI = {
 export const publicAPI = {
   lookupEvent: (accessCode) => api.post('/public/lookup', { accessCode }),
   getEventStatus: (id) => api.get(`/public/event/${id}/status`),
+  getFeed: (id) => api.get(`/public/event/${id}/feed`),
   askQuestion: (id, data) => api.post(`/public/event/${id}/questions`, data)
 }
 

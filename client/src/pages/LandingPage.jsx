@@ -64,14 +64,14 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-slate-950">
         {/* Background Image */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.18] mix-blend-luminosity"
           style={{ backgroundImage: "url('/hero-bg.jpg')" }}
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/80 to-slate-950" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
-        
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -88,18 +88,18 @@ export default function LandingPage() {
               <Shield className="w-4 h-4" />
               <span>AI-Powered Crowd Management</span>
             </motion.div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight font-display">
               Manage Crowds{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan to-accent-purple">
                 Intelligently
               </span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-slate-300 mb-10 max-w-2xl mx-auto">
               Real-time crowd monitoring, AI predictions, and smart alerts for safer events and venues.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/register"
@@ -219,8 +219,8 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="py-24 bg-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-accent-purple/5 blur-[100px] rounded-full" />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="absolute inset-0 bg-accent-purple/5 blur-[100px] rounded-full pointer-events-none" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -251,40 +251,64 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 text-slate-400 py-12">
+      <footer className="relative overflow-hidden bg-slate-950 border-t border-white/5 text-slate-400 py-16">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-cyan/40 to-transparent" />
+        <div className="pointer-events-none absolute -left-24 top-10 h-40 w-40 rounded-full bg-accent-cyan/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 bottom-0 h-48 w-48 rounded-full bg-accent-purple/10 blur-3xl" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-accent-cyan to-accent-purple rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
+          <div className="rounded-[28px] border border-white/8 bg-slate-900/45 backdrop-blur-xl shadow-[0_30px_80px_rgba(2,8,23,0.45)] px-6 py-8 sm:px-8 sm:py-10">
+            <div className="grid gap-10 lg:grid-cols-[1.35fr,0.8fr,0.8fr]">
+              <div>
+                <div className="flex items-center space-x-3 mb-5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-cyan via-sky-500 to-accent-purple shadow-[0_12px_30px_rgba(6,182,212,0.25)]">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-3xl text-white font-display leading-none">
+                      Crowd<span className="text-accent-cyan">Intel</span>
+                    </span>
+                    <p className="mt-1 text-xs uppercase tracking-[0.32em] text-slate-500">Crowd Intelligence Platform</p>
+                  </div>
                 </div>
-                <span className="font-bold text-xl text-white font-display">Crowd<span className="text-accent-cyan">Intel</span></span>
+
+                <p className="max-w-xl text-base leading-7 text-slate-300">
+                  AI-powered crowd management for safer events and venues, with live zone awareness, coordinator response flow, and public-facing visibility in one system.
+                </p>
               </div>
-              <p className="text-sm">AI-powered crowd management for safer events and venues.</p>
+
+              <div>
+                <h4 className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Product</h4>
+                <ul className="space-y-3 text-sm">
+                  <li>
+                    <Link to="/public" className="inline-flex items-center text-slate-300 hover:text-white transition-colors">
+                      Public View
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Account</h4>
+                <ul className="space-y-3 text-sm">
+                  <li>
+                    <Link to="/access" className="inline-flex items-center text-slate-300 hover:text-white transition-colors">
+                      Access Portal
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register" className="inline-flex items-center text-slate-300 hover:text-white transition-colors">
+                      Register
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/admin-login" className="inline-flex items-center text-slate-300 hover:text-white transition-colors">
+                      Admin
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link to="/public" className="hover:text-white transition-colors">Public View</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Account</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link to="/access" className="hover:text-white transition-colors">Access Portal</Link></li>
-                <li><Link to="/register" className="hover:text-white transition-colors">Register</Link></li>
-                <li><Link to="/admin-login" className="hover:text-white transition-colors">Admin</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Contact</h4>
-              <p className="text-sm">support@crowdintel.com</p>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            © 2024 CrowdIntel. All rights reserved.
           </div>
         </div>
       </footer>
