@@ -89,10 +89,22 @@ export default function UserDashboard() {
     return 'Active'
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  }
+
   const StatCard = ({ icon: Icon, label, value, color }) => (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={itemVariants}
       className="bg-slate-900/50 backdrop-blur-md rounded-xl p-6 shadow-lg border border-slate-800 hover:border-accent-cyan/50 transition-colors"
     >
       <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4 border border-white/5`}>
@@ -121,7 +133,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard 
           icon={Calendar} 
           label="Total Events" 
@@ -146,7 +158,7 @@ export default function UserDashboard() {
           value={stats.alerts} 
           color="bg-rose-500/20 text-rose-400"
         />
-      </div>
+      </motion.div>
 
       {/* Events List */}
       <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800 overflow-hidden">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Users, MapPin, Calendar, Activity, Play, RotateCcw, Plus, AlertTriangle, Brain, TrendingUp, Armchair, Navigation, Save, Map, Image as ImageIcon } from 'lucide-react'
 import { eventAPI, crowdAPI, seatingAPI, surveillanceAPI, venueAPI, venuePlanAPI } from '../lib/api'
 import { adminSocket, joinEventRoom } from '../lib/socket'
@@ -531,7 +531,15 @@ export default function EventDetails() {
 
       {/* Tab Content */}
       <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl shadow-sm border border-slate-800 p-6">
-        {activeTab === 'overview' && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Controls */}
             <div className="flex flex-wrap gap-3">
@@ -1216,6 +1224,8 @@ export default function EventDetails() {
             )}
           </div>
         )}
+        </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   )
